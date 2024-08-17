@@ -33,7 +33,7 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 
 > [!NOTE]
 >
-> Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we just set up, as this WSL environment is entirely on the Windows side.
+> Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we will be setting up!
 
 1. Install an instance of [Ubuntu through WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
     ```bash
@@ -64,7 +64,7 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 
 > [!NOTE]
 >
-> Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/eli5_pxe_boot_how_do_i_simply_install_ubuntu_from/) a group of machines using another service with a linux distro.. but even ansible is overkill for this project so we are manually installing the VM.
+> Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/eli5_pxe_boot_how_do_i_simply_install_ubuntu_from/) a group of machines automatically using another service.. but even ansible is overkill for this project so we are manually installing a VM.
 
 1. Firstly, download and install [VMWare](https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.1/23298084/windows/core/).
 
