@@ -13,13 +13,6 @@ A UNIX environment: https://docs.ansible.com/ansible/latest/installation_guide/i
 ### Python environemnt
 The `netaddr` Python library needs to be installed on the control machine
 
-
-This should create a `~/.kube` directory, else:
-
-```zsh
-mkdir -p ~/.kube
-```
-
 ### SSH key pairs
 Run the ssh-keygen command. You can specify the type of key and the file in which to save the key with additional options, but for most users, the defaults are sufficient.
 ```zsh
@@ -82,8 +75,6 @@ This is the baseline for every server and the initial reason these scripts exist
 - install additional apt packages provided by the user
 - add a "deploy" user (username of your choice) _without sudo_ usage permission
 - add your public key to the authorized keys of the deploy user
-- setup periodic [unattended-upgrades](https://wiki.debian.org/UnattendedUpgrades) with automatic reboots
-- setup [sSMTP](https://wiki.debian.org/sSMTP) to send (system) mails via SMTP
 - create a 1GB file at `/swapfile` and swap on it
 - set sysctl `vm.swappiness = 0`
 

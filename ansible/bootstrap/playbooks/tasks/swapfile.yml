@@ -7,7 +7,7 @@
 
 - name: "swapfile: create /swapfile if not exists"
   ansible.builtin.shell:
-    cmd: "fallocate -l 1G /swapfile"
+    cmd: "fallocate -l 4G /swapfile"
     creates: /swapfile
 
 - name: "swapfile: set ownership, group and permissions"
@@ -21,9 +21,6 @@
   ansible.builtin.shell: "swapon --show | grep \/swapfile"
   register: swapon
   failed_when: swapon.rc > 1
-
-# swapon.rc == 0: already mounted
-# swapon.rc == 1: not mounted
 
 - name: "swapfile: mkswap /swapfile when not mounted"
   ansible.builtin.command: "mkswap /swapfile"

@@ -1,12 +1,12 @@
 - name: Bootstrap Ubuntu Hosts
-  hosts: nodees
+  hosts: vm
   become: true
   gather_facts: true
   any_errors_fatal: true
   pre_tasks:
   - name: 'bootstrap: include secrets'
     ansible.builtin.include_vars:
-      file: '../secrets/vault.yml'
+      file: '../secrets/secrets.yml'
 
   - name: 'bootstrap: assert distribution is Ubuntu'
     fail:
@@ -32,14 +32,20 @@
   - name: Include fail2ban tasks
     ansible.builtin.import_tasks: ./tasks/fail2ban.yml
 
-  - name: Include unattended-upgrades tasks
-    ansible.builtin.import_tasks: ./tasks/unattended-upgrades.yml
-
   - name: Include apt_extra_packages tasks
     ansible.builtin.import_tasks: ./tasks/apt_extra_packages.yml
 
   - name: Include deploy tasks
     ansible.builtin.import_tasks: ./tasks/deploy.yml
+
+  - name: Include vscode tasks
+    ansible.builtin.import_tasks: ./tasks/vscode.yml
+
+  - name: Include docker tasks
+    ansible.builtin.import_tasks: ./tasks/docker.yml
+
+  - name: Include vcpkg tasks
+    ansible.builtin.import_tasks: ./tasks/vcpkg.yml
 
   handlers:
   - name: restart ssh

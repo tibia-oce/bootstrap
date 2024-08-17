@@ -1,4 +1,3 @@
----
 - name: "deploy: create user"
   user:
     name: "{{ deploy_username }}"

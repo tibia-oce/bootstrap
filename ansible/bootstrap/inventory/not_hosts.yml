@@ -1,0 +1,8 @@
+vm:
+  vars:
+    ansible_ssh_port: 22
+    ansible_user: user
+    deploy_username: user
+    canary_repo_url: 'https://github.com/tibia-oce/canary.git'
+  hosts:
+    0.0.0.0: {}

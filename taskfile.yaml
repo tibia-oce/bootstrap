@@ -4,6 +4,7 @@ vars:
   ANSIBLE_DIR: "{{.ROOT_DIR}}/ansible"
 
 includes:
+  secrets: .taskfiles/secrets/taskfile.yaml
   ansible: .taskfiles/ansible/taskfile.yaml
 
 tasks:

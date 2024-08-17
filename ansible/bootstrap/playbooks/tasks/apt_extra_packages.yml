@@ -1,3 +1,58 @@
----
-- name: "apt: install EXTRA_PACKAGES"
-  apt: state=present pkg={{ EXTRA_PACKAGES|default([]) }}
+- name: Update package list and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install essential packages
+  apt:
+    name:
+    - lsof
+    - ripgrep
+    - fzf
+    - ncdu
+    - git
+    - build-essential
+    - autoconf
+    - libtool
+    - ca-certificates
+    - curl
+    - zip
+    - unzip
+    - tar
+    - pkg-config
+    - ninja-build
+    - ccache
+    - linux-headers-{{ ansible_kernel }}
+    state: present
+
+- name: Remove existing cmake package
+  apt:
+    name: cmake
+    state: absent
+
+- name: Ensure snapd is installed
+  apt:
+    name: snapd
+    state: present
+
+- name: Install cmake via snap
+  command: snap install cmake --classic
+
+- name: Update package list
+  apt:
+    update_cache: yes
+
+- name: Install gcc-12 and g++-12
+  apt:
+    name:
+    - gcc-12
+    - g++-12
+    state: present
+
+- name: Set gcc-12 as default gcc
+  command: update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 --slave /usr/bin/g++ g++ /usr/bin/g++-12 --slave /usr/bin/gcov gcov /usr/bin/gcov-12
+
+- name: Set gcc-12 as default compiler
+  command: update-alternatives --set gcc /usr/bin/gcc-12

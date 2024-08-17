@@ -1,9 +1,8 @@
----
 - name: "admin: add admin user"
-  user: name={{ ADMIN_USERNAME }} password={{ ADMIN_PASSWORD | password_hash('sha512') }} shell=/bin/bash
+  user: name={{ ROOT_USERNAME }} password={{ ROOT_PASSWORD | password_hash('sha512') }} shell=/bin/bash
 
 - name: add authorized keys for admin user
-  authorized_key: user={{ ADMIN_USERNAME }} key="{{ lookup('file', item) }}"
+  authorized_key: user={{ ROOT_USERNAME }} key="{{ lookup('file', item) }}"
   with_items: "{{ PUBLIC_KEYS }}"
 
 - name: "admin: create sudoers.d directory"
@@ -24,7 +23,7 @@
 - name: "admin: create sudoer file for admin"
   template:
     src: sudoers.d.j2
-    dest: "/etc/sudoers.d/{{ ADMIN_USERNAME }}"
+    dest: "/etc/sudoers.d/{{ ROOT_USERNAME }}"
     mode: 0440
     owner: root
     group: root
@@ -32,5 +31,5 @@
 
 - name: "admin: remove world-readable permissions from home directory"
   ansible.builtin.file:
-    path: "/home/{{ ADMIN_USERNAME }}"
+    path: "/home/{{ ROOT_USERNAME }}"
     mode: "0750"
