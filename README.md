@@ -123,6 +123,11 @@ task ansible:run
 
 ## Additional
 
+### Cleanup
+
+1. Remove WSL Ubuntu installation:
+```wsl --unregister Ubuntu```
+
 ### Updating secrets
 
 If you would like to improve the security, you can rekey the vault with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.  Most of these scripts are idempotent and configurable, so you can go back through the entire process again after creating a new VM with a different set of credentials and simply pass the new values.

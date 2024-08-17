@@ -4,7 +4,6 @@ tasks:
 
   run:
     desc: "Run an Ansible playbook"
-    prompt: "Run Ansible playbook '{{.playbook}}' from the 'bootstrap' namespace ... continue?"
+    prompt: "Running Ansible playbook, this process will take 10+ minutes ... continue?"
     cmds:
-    - python3 -m venv .venv && source .venv/bin/activate
-    - ansible-playbook -i {{.ANSIBLE_DIR}}/bootstrap/inventory/hosts.yml {{.ANSIBLE_DIR}}/bootstrap/playbooks/initialise.yml --ask-become-pass --ask-vault-pass
+    - python3 -m venv .venv && source .venv/bin/activate && ansible-playbook -i {{.ANSIBLE_DIR}}/bootstrap/inventory/hosts.yml {{.ANSIBLE_DIR}}/bootstrap/playbooks/initialise.yml --ask-vault-pass
