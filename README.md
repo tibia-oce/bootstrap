@@ -39,6 +39,7 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 Firstly, download and install [VMWare](https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.1/23298084/windows/core/).
 
 #### Ubuntu Desktop 22.04
+
 After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/).  
 
 When setting up the profile for the first time, set:
@@ -65,7 +66,7 @@ sudo systemctl enable ssh
 
 ### Finding your Ubuntu IP
 
-To find the IP address of your new machine, open a terminal in Ubutnu and use:
+To find the IP address of your new machine, open a terminal in Ubuntu and use:
 ```sh
 # To copy from a VM it's often easiest to right click and select copy
 ip addr show ens33 | grep -oP 'inet \K[\d.]+'
@@ -97,36 +98,15 @@ ssh-copy-id $SERVER_USER@$SERVER_IP
 
 ## Installation
 
-### Updating secrets
+### Copy required configs
 
-Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can rekey the vault with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
+Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can [rekey the vault](#Updating-secrets) with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
 
 ```sh
 # Required
 task secrets:copy # creates a copy of the secrets vault (this copy will only ever exist on your local machine)
 task secrets:host host=$SERVER_IP # creates a copy of the host file (this copy will only ever exist on your local machine)
-
-# Optional
-task secrets:rekey # used to update the vault password
-task secrets:edit # opens a vim editor to change secrets used for deployments
 ```
-
-### Baseline configurations
-
-This is the baseline for most servers with some tweaks for simplicity: 
-
-- change the root password
-- add an "admin" user (username of your choice)
-- add your public key to `.ssh/authorized_keys` for the admin user
-- add that admin user to `/etc/sudoers`
-- install [ufw](https://launchpad.net/ufw) (uncomplicated firewall, an iptables frontend) and [fail2ban](https://www.fail2ban.org/)
-- SSH: disallow password authentication
-- SSH: disallow root login
-- setup firewall to allow SSH traffic
-- install additional apt packages provided by the user
-- add your public key to the authorized keys of the deploy user
-- create a 4GB file at `/swapfile` and swap on it
-- set sysctl `vm.swappiness = 60` to assist with compiling
 
 ### Running the playbook
 
@@ -139,7 +119,19 @@ task ansible:run
 
 <br>
 
-## Tunnelling
+## Additional
+
+### Updating secrets
+
+If you would like to improve the security, you can rekey the vault with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
+
+```sh
+# Optional
+task secrets:rekey # used to update the vault password
+task secrets:edit # opens a vim editor to change secrets used for deployments
+```
+
+### Tunnelling
 
 Now that the web-server, game-server, database and proxy are configured, you can create a tunnel from your main operating machine to the linux vm (if you'd prefer to run the windows client or browse the services from your Windows side).
 ```sh
@@ -149,19 +141,6 @@ ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:loc
 
 <br>
 
-## 📁 Directories
-
-This Git repository contains the following directories:
-
-```zsh
-📁 homelab
-├── 📁 docs                 # 
-│   └── 📁 notes            #          
-└── 📁 ansible              # 
-    └── 📁 bootstrap        # 
-```
-
-<br>
 
 ### Furture Improvements
 
