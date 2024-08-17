@@ -76,12 +76,12 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
     - password: ```password```
 
 4. If you didn't enable this during your Ubuntu installation, set up the SSH server so that your control machine can talk to your managed node via SSH.
-```sh
-sudo apt update
-sudo apt install openssh-server
-sudo systemctl start ssh
-sudo systemctl enable ssh
-```
+    ```
+    sudo apt update
+    sudo apt install openssh-server
+    sudo systemctl start ssh
+    sudo systemctl enable ssh
+    ```
 
 <br>
 
@@ -90,16 +90,16 @@ sudo systemctl enable ssh
 ### Finding your Ubuntu IP
 
 1. To find the IP address of the VM, open a terminal and use:
-```sh
-# To copy from a VM it's often easiest to right click and select copy
-ip addr show ens33 | grep -oP 'inet \K[\d.]+'
-```
+    ```sh
+    # To copy from a VM it's often easiest to right click and select copy
+    ip addr show ens33 | grep -oP 'inet \K[\d.]+'
+    ```
 
 2.  Back on your control machine, we'll generate a signed SSH key and place the tail in your control node so that after this process, your VM is secured:
-```sh
-# Where '0.0.0.0' is the IP from the previous command
-task environment:keys host=0.0.0.0  # optional: user=...
-```
+    ```sh
+    # Where '0.0.0.0' is the IP from the previous command
+    task environment:keys host=0.0.0.0  # optional: user=...
+    ```
 
 <br>
 
