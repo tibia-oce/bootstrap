@@ -16,7 +16,6 @@ Although the open source Tibia dev community hasn't transitioned entirely into a
 
 This repository contains all the information required to set up a test/dev environment and simplify compiling.  The Ansible [playbook](ansible\bootstrap\playbooks\initialise.yml) and scripts in the project will take you through creating a VM on your Windows machine that runs [Ubuntu 22.04 desktop](https://releases.ubuntu.com/jammy/).  You will be able to work on your own isolated copy of the latest server, client, launcher and login proxy without haven't to go through too much effort to set anything up initially.  Beyond setting up just the server repositories and developer environment, it also configures what's described in the article ["My First 5 Minutes On A Server; Or, Essential Security for Linux Servers"](https://web.archive.org/web/20201112012219/https://plusbryan.com/my-first-5-minutes-on-a-server-or-essential-security-for-linux-servers). 
 
-
 <br>
 
 ### Ansible
@@ -77,6 +76,11 @@ Back on your control machine export the server IP as a temporary environment var
 export SERVER_IP=
 ```
 
+Also export the username we used in the creation of the server:
+```sh
+export SERVER_USER=user
+```
+
 ### SSH key pairs
 Follow best practices, we'll generate a signed SSH key and place the tail in your control node so that after this process, your VM is secured.
 
@@ -86,7 +90,7 @@ ssh-keygen -t rsa -b 4096
 
 Copy the public key to your managed node(s).  Each time you try to connect via a terminal to your VM, your managed machine will match the other half of the key to what you've just generated.
 ```zsh
-ssh-copy-id user@$SERVER_IP
+ssh-copy-id $SERVER_USER@$SERVER_IP
 ```
 
 <br>
@@ -130,7 +134,7 @@ Finally, trigger the playbook to run via:
 
 ```sh
 # BECOME password & vault-password are 'password' by default
-task ansible:run playbook=initialise namespace=bootstrap
+task ansible:run
 ```
 
 <br>
@@ -140,7 +144,7 @@ task ansible:run playbook=initialise namespace=bootstrap
 Now that the web-server, game-server, database and proxy are configured, you can create a tunnel from your main operating machine to the linux vm (if you'd prefer to run the windows client or browse the services from your Windows side).
 ```sh
 # Open a new terminal in the managed machine and run:
-ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:localhost:22 -L 3306:localhost:3306 [USERNAME]@[VM IP ADDRESS]
+ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:localhost:22 -L 3306:localhost:3306 $SERVER_USER@$SERVER_IP
 ```
 
 <br>
