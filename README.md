@@ -23,17 +23,20 @@ For a brief rundown on what Ansible is and what it's used for see [here](https:/
 
 ![Ansible](docs/src/assets/images/ansible.jpg)
 
+
 <br>
 
 ## Requirements
 
-Prior to executing any playbooks, you are required to set up a managed node (a Ubuntu Desktop 22.04 VM using VMWare Workstation) and a control node (your current machine with some small software installations).
+> [!NOTE]
+>
+> If you are new to developing, follow this [guide](#New-to-git) first, then return here. 
+
+Prior to executing any playbooks, you are required to set up a managed node (a Ubuntu Desktop 22.04 VM using VMWare Workstation) and a control node (your current machine with some small software installations).  
 
 ### Control Node
 
-> [!NOTE]
->
-> Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we will be setting up!
+Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we will be setting up!
 
 1. Install an instance of [Ubuntu through WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
     ```bash
@@ -62,9 +65,7 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 
 ### Managed Node (Ubuntu Desktop 22.04)
 
-> [!NOTE]
->
-> Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/eli5_pxe_boot_how_do_i_simply_install_ubuntu_from/) a group of machines automatically using another service.. but even ansible is overkill for this project so we are manually installing a VM.
+Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/eli5_pxe_boot_how_do_i_simply_install_ubuntu_from/) a group of machines automatically using another service.. but even ansible is overkill for this project so we are manually installing a VM.
 
 1. Firstly, download and install [VMWare](https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.1/23298084/windows/core/).
 
@@ -143,6 +144,28 @@ Now that the web-server, game-server, database and proxy are configured, you can
 # Open a new terminal in the managed machine and run:
 ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:localhost:22 -L 3306:localhost:3306 $SERVER_USER@$SERVER_IP
 ```
+
+<br>
+
+### New to git
+
+1. To work through this repository you will require first install [Git](https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe).
+
+2. Next you need to allocate a folder to download this projects code to. 
+
+![pwd](docs/src/assets/images/pwd.png)
+
+3. Copy the path of the new folder you've created and open a powershell terminal
+
+4. Navigate the powershell terminal to the folder by using:
+    ```cd [ENTER PATH HERE]```
+
+5. Next, download the project to your own machine from github using `git clone https://github.com/tibia-oce/bootstrap.git`.
+
+![clone](docs/src/assets/images/clone.png)
+
+6. Finally, navigate your powershell terminal into the new project download
+    ```cd bootstrap```
 
 <br>
 
