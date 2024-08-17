@@ -36,21 +36,29 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 > Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we just set up, as this WSL environment is entirely on the Windows side.
 
 1. Install an instance of [Ubuntu through WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
-`wsl --install -d Ubuntu`
+    ```bash
+    wsl --install -d Ubuntu
+    ```
 
 2. Once the install is finished, close that terminal, open another powershell/cmd prompt from the project directory (../bootstrap) and run:
-`wsl -d Ubuntu`
+    ```bash
+    wsl -d Ubuntu
+    ```
 
 3. Set a shortcut to the project working directory
-`echo 'export BOOTSTRAP_PROJECT_DIR=$(pwd)' >> ~/.bashrc && source ~/.bashrc`
+    ```bash
+    echo 'export BOOTSTRAP_PROJECT_DIR=$(pwd)' >> ~/.bashrc && source ~/.bashrc
+    ```
 
 4. Install 'task' (this will be used to shortcut a number of commands throughout this project)
-`sudo snap install task --classic && cd $BOOTSTRAP_PROJECT_DIR`
+    ```bash
+    sudo snap install task --classic && cd $BOOTSTRAP_PROJECT_DIR
+    ```
 
 5. Install python and launch a virtual environment to set up Ansible in (this may take a few minutes).
-```bash
-task environment:python
-```
+    ```bash
+    task environment:python
+    ```
 
 ### Managed Node (Ubuntu Desktop 22.04)
 
