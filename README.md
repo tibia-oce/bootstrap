@@ -1,6 +1,6 @@
 # 🏠 Bootstrap
 
-**[Notes](#Notes) • [Overview](#Requirements)**
+**[Notes](#Notes) • [Overview](#📖 Overview) • [Requirements](#Requirements) • [Installation](#Installation)**
 
 <br>
 
@@ -34,7 +34,7 @@ For a brief rundown on what Ansible is and what it's used for see [here](https:/
 
 Prior to executing any playbooks, you are required to set up a managed node (a Ubuntu Desktop 22.04 VM using VMWare Workstation) and a control node (your current machine with some small software installations).  
 
-### Control Node
+### Setting up your control node
 
 Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we will be setting up!
 
@@ -63,7 +63,7 @@ Because Ansible requires a bash environment, we'll be using WSL on Windows, to a
     task environment:python
     ```
 
-### Managed Node (Ubuntu Desktop 22.04)
+### Setting up your managed node (Ubuntu Desktop 22.04)
 
 Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/eli5_pxe_boot_how_do_i_simply_install_ubuntu_from/) a group of machines automatically using another service.. but even ansible is overkill for this project so we are manually installing a VM.
 
@@ -83,10 +83,6 @@ Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/
     sudo systemctl start ssh
     sudo systemctl enable ssh
     ```
-
-<br>
-
-## Initial Setup
 
 ### Finding your Ubuntu IP
 
@@ -147,9 +143,17 @@ ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:loc
 
 <br>
 
-### New to git
+## Furture Improvements
 
-1. To work through this repository you will require first install [Git](https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe).
+- Improve new user creation and deploy user creation/swap
+- Rather than force clone on vcpkg, use git stash
+- Add a remote secret server (HashiCorp, AWS?)
+
+<br>
+
+## New to git
+
+1. To work through this repository you will require first installing [Git](https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe).
 
 2. Next you need to allocate a folder to download this projects code to. 
 
@@ -167,10 +171,4 @@ ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:loc
 6. Finally, navigate your powershell terminal into the new project download
     ```cd bootstrap```
 
-<br>
-
-## Furture Improvements
-
-- Improve new user creation and deploy user creation/swap
-- Rather than force clone on vcpkg, use git stash
-- Add a remote secret server (HashiCorp, AWS?)
+7. You are now ready to continue on with the rest of the [installation guide](#control-node).
