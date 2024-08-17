@@ -1,6 +1,6 @@
 # 🏠 Bootstrap
 
-**[Notes](#Notes) • [Overview](#📖-Overview)**
+**[Notes](#Notes) • [Overview](#Requirements)**
 
 <br>
 
@@ -8,14 +8,14 @@
 
 > [!NOTE]
 >
-> This project is targetted at users who only work from a Windows machine.  If you are running Mac and Linux already, you'll have to [configure the compiler and libaries](#) from source yourself.
-
+> This project is targetted at users who only work from a Windows machine, and therefor only tested with Ubuntu 22.04 Server.  If you are running Mac and Linux already, you'll have to [configure the compiler and libaries](#) from source yourself.
 
 Historically, managing Tibia private servers involved manually setting up and maintaining [XAMPP](https://www.apachefriends.org/), [MySQL](https://www.mysql.com/), and [PHPMyAdmin](https://www.phpmyadmin.net/) on Windows machines, which required direct intervention for troubleshooting and service management.  Often this meant to develop and test new code, you would have to creates sets of the web server stack and code to develop on... which becomes very cumbersome.
 
 Although the open source Tibia dev community hasn't transitioned entirely into a microservice architectures - they are beginning to port services to Linux and supporting [Docker](https://www.docker.com/).  This offers significant advantages by decoupling services into independent containers, enhancing fault tolerance, scalability, and deployment consistency. Additionally, using [Ansible](https://www.ansible.com/) for configuring development and test environments automates setup tasks, ensures consistency across environments, and reduces manual errors.
 
-This repository contains all the information required to set up a test/dev environment and simplify compiling.  The Ansible [playbook](ansible\bootstrap\playbooks\initialise.yml) and scripts in the project will take you through creating a VM on your Windows machine that runs [Ubuntu 22.04 desktop](https://releases.ubuntu.com/jammy/).  You will be able to work on your own isolated copy of the latest server, client, launcher and login proxy without haven't to go through too much effort to set anything up initially. 
+This repository contains all the information required to set up a test/dev environment and simplify compiling.  The Ansible [playbook](ansible\bootstrap\playbooks\initialise.yml) and scripts in the project will take you through creating a VM on your Windows machine that runs [Ubuntu 22.04 desktop](https://releases.ubuntu.com/jammy/).  You will be able to work on your own isolated copy of the latest server, client, launcher and login proxy without haven't to go through too much effort to set anything up initially.  Beyond setting up just the server repositories and developer environment, it also configures what's described in the article ["My First 5 Minutes On A Server; Or, Essential Security for Linux Servers"](https://web.archive.org/web/20201112012219/https://plusbryan.com/my-first-5-minutes-on-a-server-or-essential-security-for-linux-servers). 
+
 
 <br>
 
@@ -40,7 +40,9 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 Firstly, download and install [VMWare](https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.1/23298084/windows/core/).
 
 #### Ubuntu Desktop 22.04
-After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/).  When setting up the profile for the first time, set:
+After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/).  
+
+When setting up the profile for the first time, set:
 - username: ```user```
 - password: ```password```
 
@@ -64,7 +66,7 @@ sudo systemctl enable ssh
 
 ### Finding your Ubuntu IP
 
-To find the IP address of your new Ubutnu machine, open a terminal and use:
+To find the IP address of your new machine, open a terminal in Ubutnu and use:
 ```sh
 # To copy from a VM it's often easiest to right click and select copy
 ip addr show ens33 | grep -oP 'inet \K[\d.]+'
