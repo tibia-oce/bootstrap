@@ -1,6 +1,6 @@
 # 🏠 Bootstrap
 
-**[Notes](#Notes) • [Overview](#📖 Overview) • [Requirements](#Requirements) • [Installation](#Installation)**
+**[Notes](#Notes) • [Overview](#📖-Overview) • [Requirements](#Requirements) • [Installation](#Installation)**
 
 <br>
 
