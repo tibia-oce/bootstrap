@@ -1,0 +1,15 @@
+version: '3'
+
+tasks:
+
+  run:
+    desc: "Run an Ansible playbook"
+    summary: |
+      Args:
+        namespace: Namespace to run command against (required)
+        playbook: Playbook to run (required)
+    prompt: "Run Ansible playbook '{{.playbook}}' from the '{{.namespace}}' namespace ... continue?"
+    cmds:
+      - ansible-playbook -i {{.ANSIBLE_DIR}}/{{.namespace}}/inventory/hosts.yml {{.ANSIBLE_DIR}}/{{.namespace}}/playbooks/{{.playbook}}.yml --ask-become-pass --ask-vault-pass
+    requires:
+      vars: ["playbook", "namespace"]
