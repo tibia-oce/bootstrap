@@ -29,6 +29,29 @@ For a brief rundown on what Ansible is and what it's used for see [here](https:/
 
 Prior to executing any playbooks, you are required to set up a managed node (a Ubuntu Desktop 22.04 VM using VMWare Workstation) and a control node (your current machine with some small software installations).
 
+### Control Node
+
+> [!NOTE]
+>
+> Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we just set up, as this WSL environment is entirely on the Windows side.
+
+1. Install an instance of [Ubuntu through WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
+`wsl --install -d Ubuntu`
+
+2. Once the install is finished, close that terminal, open another powershell/cmd prompt from the project directory (../bootstrap) and run:
+`wsl -d Ubuntu`
+
+3. Set a shortcut to the project working directory
+`echo 'export BOOTSTRAP_PROJECT_DIR=$(pwd)' >> ~/.bashrc && source ~/.bashrc`
+
+4. Install 'task' (this will be used to shortcut a number of commands throughout this project)
+`sudo snap install task --classic && cd $BOOTSTRAP_PROJECT_DIR`
+
+5. Install python and launch a virtual environment to set up Ansible in (this may take a few minutes).
+```bash
+task environment:python
+```
+
 ### Managed Node (Ubuntu Desktop 22.04)
 
 > [!NOTE]
@@ -50,26 +73,6 @@ sudo apt update
 sudo apt install openssh-server
 sudo systemctl start ssh
 sudo systemctl enable ssh
-```
-
-### Control Node
-
-> [!NOTE]
->
-> Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we just set up, as this WSL environment is entirely on the Windows side.
-
-1. Install an instance of [Ubuntu through WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
-`wsl --install -d Ubuntu`
-
-2. Set a shortcut to the project working directory
-`echo 'export BOOTSTRAP_PROJECT_DIR=$(pwd)' >> ~/.bashrc && source ~/.bashrc`
-
-3. Install 'task' (this will be used to shortcut a number of commands throughout this project)
-`sudo snap install task --classic && cd ~/bin && chmod +x task && export PATH="$HOME/bin:$PATH" && cd $BOOTSTRAP_PROJECT_DIR && source ~/.bashrc`
-
-4. Install python and launch a virtual environment to set up Ansible in (this may take a few minutes).
-```bash
-task environment:python
 ```
 
 <br>
@@ -99,8 +102,7 @@ task environment:keys host=0.0.0.0  # optional: user=...
 Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can [rekey the vault](#Updating-secrets) with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
 
 ```sh
-task secrets:copy
-task secrets:host host=0.0.0.0 # Where '0.0.0.0' is the IP from the previous command
+task secrets:copy host=0.0.0.0 # Where '0.0.0.0' is the IP from the previous command
 ```
 
 ### Running the playbook
@@ -118,7 +120,7 @@ task ansible:run
 
 ### Updating secrets
 
-If you would like to improve the security, you can rekey the vault with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
+If you would like to improve the security, you can rekey the vault with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.  Most of these scripts are idempotent and configurable, so you can go back through the entire process again after creating a new VM with a different set of credentials and simply pass the new values.
 
 ```sh
 # Optional
@@ -138,6 +140,6 @@ ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:loc
 
 ## Furture Improvements
 
-- Improve new user creation and swap
+- Improve new user creation and deploy user creation/swap
+- Rather than force clone on vcpkg, use git stash
 - Add a remote secret server (HashiCorp, AWS?)
-- Rather than force clone, use git stash
