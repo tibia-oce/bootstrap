@@ -1,0 +1,93 @@
+- name: Update package list and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install necessary packages
+  apt:
+    name:
+    - acl
+    - git
+    - libxcb-xinerama0
+    - libxcb-util1
+    - libxkbcommon-x11-0
+    - libprotobuf-dev
+    - protobuf-compiler
+    state: present
+
+- name: Clone vcpkg repository
+  git:
+    repo: https://github.com/microsoft/vcpkg
+    dest: ~/vcpkg
+    clone: yes
+
+- name: Run vcpkg bootstrap script
+  command: ~/vcpkg/bootstrap-vcpkg.sh
+  args:
+    chdir: ~/vcpkg
+
+- name: Remove protobuf from vcpkg
+  command: ./vcpkg remove protobuf
+  args:
+    chdir: ~/vcpkg
+
+- name: Install protobuf via vcpkg
+  command: ./vcpkg install protobuf
+  args:
+    chdir: ~/vcpkg
+
+- name: Clone Canary repository
+  git:
+    repo: "{{ canary_repo_url }}"
+    dest: /home/{{ deploy_username }}/canary
+    clone: yes
+    depth: 1
+    force: yes
+
+- name: Set ACLs for canary directory
+  command: setfacl -R -m g:www-data:rx /home/{{ deploy_username }}/canary
+  args:
+    chdir: ~
+
+- name: Set permissions for canary directory
+  file:
+    path: /home/{{ deploy_username }}/canary
+    mode: '0777'
+    recurse: yes
+
+- name: Copy and rename config.lua
+  command: mv config.lua.dist config.lua
+  args:
+    chdir: /home/{{ deploy_username }}/canary
+
+- name: Create build directory
+  file:
+    path: /home/{{ deploy_username }}/canary/build
+    state: directory
+    recurse: yes
+
+- name: Configure the build
+  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
+  args:
+    chdir: /home/{{ deploy_username }}/canary/build
+
+- name: Comment
+  debug:
+    msg: "Note: This build process may take 5-10 minutes due to it having to install then compile all the server files."
+
+- name: Compile the server binary
+  command: cmake --build linux-release -- -j4
+  args:
+    chdir: /home/{{ deploy_username }}/canary/build
+
+- name: Move built binary
+  copy:
+    src: /home/{{ deploy_username }}/canary/build/linux-release/bin/canary
+    dest: /home/{{ deploy_username }}/canary/canary
+    remote_src: yes
+    mode: '0777'
+
+- name: Set binary as executable
+  command: chmod +x /home/{{ deploy_username }}/canary/canary

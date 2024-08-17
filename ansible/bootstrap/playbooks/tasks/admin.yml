@@ -1,0 +1,35 @@
+- name: "admin: add admin user"
+  user: name={{ ROOT_USERNAME }} password={{ ROOT_PASSWORD | password_hash('sha512') }} shell=/bin/bash
+
+- name: add authorized keys for admin user
+  authorized_key: user={{ ROOT_USERNAME }} key="{{ lookup('file', item) }}"
+  with_items: "{{ PUBLIC_KEYS }}"
+
+- name: "admin: create sudoers.d directory"
+  file:
+    path: /etc/sudoers.d
+    owner: root
+    group: root
+    mode: 0755
+    state: directory
+
+- name: "admin: set includedir in sudoers"
+  lineinfile:
+    dest: /etc/sudoers
+    line: "#includedir /etc/sudoers.d"
+    state: present
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: "admin: create sudoer file for admin"
+  template:
+    src: sudoers.d.j2
+    dest: "/etc/sudoers.d/{{ ROOT_USERNAME }}"
+    mode: 0440
+    owner: root
+    group: root
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: "admin: remove world-readable permissions from home directory"
+  ansible.builtin.file:
+    path: "/home/{{ ROOT_USERNAME }}"
+    mode: "0750"

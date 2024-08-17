@@ -1,0 +1,9 @@
+version: '3'
+
+tasks:
+
+  run:
+    desc: "Run an Ansible playbook"
+    prompt: "Run Ansible playbook '{{.playbook}}' from the 'bootstrap' namespace ... continue?"
+    cmds:
+    - ansible-playbook -i {{.ANSIBLE_DIR}}/bootstrap/inventory/hosts.yml {{.ANSIBLE_DIR}}/bootstrap/playbooks/initialise.yml --ask-become-pass --ask-vault-pass

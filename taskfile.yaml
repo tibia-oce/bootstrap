@@ -1,0 +1,13 @@
+version: "3"
+
+vars:
+  ANSIBLE_DIR: "{{.ROOT_DIR}}/ansible"
+
+includes:
+  secrets: .taskfiles/secrets/taskfile.yaml
+  ansible: .taskfiles/ansible/taskfile.yaml
+
+tasks:
+  default:
+    silent: true
+    cmd: task -l
