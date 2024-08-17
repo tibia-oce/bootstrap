@@ -1,0 +1,24 @@
+version: '3'
+
+tasks:
+
+  python:
+    desc: "Create a python virtual environment with Ansible installed"
+    cmds:
+    - sudo apt update && sudo apt install python3 python3-venv
+    - python3 -m venv .venv && source .venv/bin/activate
+    - pip install ansible
+    - ansible-galaxy install -r {{.ANSIBLE_DIR}}/requirements.yml
+
+  keys:
+    desc: "Generates RSA SSH Keys and sets them in the VM"
+    summary: |
+      Args:
+        host: managed node ip address
+        user: username of node
+    cmds:
+    - ssh-keygen -t rsa -b 4096
+    - ssh-copy-id {{.user | default "user"}}@{{.host}}
+    requires:
+      vars: ["host"]
+

@@ -6,6 +6,7 @@ vars:
 includes:
   secrets: .taskfiles/secrets/taskfile.yaml
   ansible: .taskfiles/ansible/taskfile.yaml
+  environment: .taskfiles/environment/taskfile.yaml
 
 tasks:
   default:

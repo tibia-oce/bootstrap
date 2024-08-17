@@ -27,36 +27,24 @@ For a brief rundown on what Ansible is and what it's used for see [here](https:/
 
 ## Requirements
 
+Prior to executing any playbooks, you are required to set up a managed node (a Ubuntu Desktop 22.04 VM using VMWare Workstation) and a control node (your current machine with some small software installations).
+
+### Managed Node (Ubuntu Desktop 22.04)
+
 > [!NOTE]
 >
 > Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/eli5_pxe_boot_how_do_i_simply_install_ubuntu_from/) a group of machines using another service with a linux distro.. but even ansible is overkill for this project so we are manually installing the VM.
 
-Prior to executing any playbooks, you are required to set up a managed node (a Ubuntu Desktop 22.04 VM using VMWare Workstation) and a control node (your current machine with some small software installations).
+1. Firstly, download and install [VMWare](https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.1/23298084/windows/core/).
 
-### Managed Node
+2. After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/).  
 
-#### VMWare WorkStattion 17.5 
-Firstly, download and install [VMWare](https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.1/23298084/windows/core/).
+3. When setting up the profile for the first time, set:
+    - name: ```whatever```
+    - username: ```user```
+    - password: ```password```
 
-#### Ubuntu Desktop 22.04
-
-After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/).  
-
-When setting up the profile for the first time, set:
-- username: ```user```
-- password: ```password```
-
-### Control Node
-Next, you'll need to [set up a UNIX environment](https://docs.ansible.com/ansible/latest/installation_guide/index.html) on your managed node to run ansible run.  Unfortunately Windows is not support as a control node out the box with Ansible, so there will be scripts and docs on how to quickly get this ready. 
-- Run `ansible-galaxy install -r requirements.yml` to install the dependencies.
-
-<br>
-
-## Initial Setup
-
-### SSH Server
-If you didn't enable this during your Ubuntu installation, set up the SSH server so that your control machine can talk to your managed node via SSH.
-
+4. If you didn't enable this during your Ubuntu installation, set up the SSH server so that your control machine can talk to your managed node via SSH.
 ```sh
 sudo apt update
 sudo apt install openssh-server
@@ -64,34 +52,42 @@ sudo systemctl start ssh
 sudo systemctl enable ssh
 ```
 
+### Control Node
+
+> [!NOTE]
+>
+> Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we just set up, as this WSL environment is entirely on the Windows side.
+
+1. Install an instance of [Ubuntu through WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
+`wsl --install -d Ubuntu`
+
+2. Set a shortcut to the project working directory
+`echo 'export BOOTSTRAP_PROJECT_DIR=$(pwd)' >> ~/.bashrc && source ~/.bashrc`
+
+3. Install 'task' (this will be used to shortcut a number of commands throughout this project)
+`sudo snap install task --classic && cd ~/bin && chmod +x task && export PATH="$HOME/bin:$PATH" && cd $BOOTSTRAP_PROJECT_DIR && source ~/.bashrc`
+
+4. Install python and launch a virtual environment to set up Ansible in (this may take a few minutes).
+```bash
+task environment:python
+```
+
+<br>
+
+## Initial Setup
+
 ### Finding your Ubuntu IP
 
-To find the IP address of your new machine, open a terminal in Ubuntu and use:
+1. To find the IP address of the VM, open a terminal and use:
 ```sh
 # To copy from a VM it's often easiest to right click and select copy
 ip addr show ens33 | grep -oP 'inet \K[\d.]+'
 ```
 
-Back on your control machine export the server IP as a temporary environment variable using:
+2.  Back on your control machine, we'll generate a signed SSH key and place the tail in your control node so that after this process, your VM is secured:
 ```sh
-export SERVER_IP=
-```
-
-Also export the username we used in the creation of the server:
-```sh
-export SERVER_USER=user
-```
-
-### SSH key pairs
-Follow best practices, we'll generate a signed SSH key and place the tail in your control node so that after this process, your VM is secured.
-
-```zsh
-ssh-keygen -t rsa -b 4096
-```
-
-Copy the public key to your managed node(s).  Each time you try to connect via a terminal to your VM, your managed machine will match the other half of the key to what you've just generated.
-```zsh
-ssh-copy-id $SERVER_USER@$SERVER_IP
+# Where '0.0.0.0' is the IP from the previous command
+task environment:keys host=0.0.0.0  # optional: user=...
 ```
 
 <br>
@@ -103,9 +99,8 @@ ssh-copy-id $SERVER_USER@$SERVER_IP
 Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can [rekey the vault](#Updating-secrets) with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
 
 ```sh
-# Required
-task secrets:copy # creates a copy of the secrets vault (this copy will only ever exist on your local machine)
-task secrets:host host=$SERVER_IP # creates a copy of the host file (this copy will only ever exist on your local machine)
+task secrets:copy
+task secrets:host host=0.0.0.0 # Where '0.0.0.0' is the IP from the previous command
 ```
 
 ### Running the playbook
@@ -141,8 +136,7 @@ ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:loc
 
 <br>
 
-
-### Furture Improvements
+## Furture Improvements
 
 - Improve new user creation and swap
 - Add a remote secret server (HashiCorp, AWS?)
