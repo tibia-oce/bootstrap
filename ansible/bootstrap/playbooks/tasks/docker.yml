@@ -1,4 +1,4 @@
-- name: install prerequisites for Docker repository
+- name: Install prerequisites for Docker repository
   ansible.builtin.apt:
     pkg:
     - ca-certificates
@@ -6,47 +6,59 @@
     - gnupg2
     - lsb-release
 
-- name: add docker apt key
+- name: Add Docker apt key
   apt_key:
     url: https://download.docker.com/linux/ubuntu/gpg
     state: present
 
-- name: add docker apt repository
+- name: Add Docker apt repository
   apt_repository:
     repo: "deb [arch=amd64] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
     state: present
     update_cache: yes
 
-- name: install docker and its dependencies
-  apt:
+- name: Install Docker and its dependencies
+  ansible.builtin.apt:
     pkg:
     - docker-ce
     - docker-ce-cli
     - containerd.io
     - docker-buildx-plugin
     - docker-compose-plugin
+    - docker-compose
     state: present
 
-- name: start and enable docker daemon
-  service:
+- name: Ensure Docker group exists
+  ansible.builtin.group:
     name: docker
-    state: started
-    enabled: yes
+    state: present
 
-- name: start and enable containerd daemon
-  service:
-    name: containerd
-    state: started
-    enabled: yes
+- name: Add "{{ deploy_username }}" to Docker group
+  ansible.builtin.user:
+    name: "{{ deploy_username }}"
+    groups: docker
+    append: yes
 
-- name: Add user to Docker group
-  user:
+- name: Add "{{ ansible_user }}" to Docker group
+  ansible.builtin.user:
     name: "{{ ansible_user }}"
     groups: docker
     append: yes
 
+- name: Start and enable Docker daemon
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Start and enable containerd daemon
+  ansible.builtin.service:
+    name: containerd
+    state: started
+    enabled: yes
+
 - name: Ensure Docker service is running
-  service:
+  ansible.builtin.service:
     name: docker
     state: started
     enabled: yes

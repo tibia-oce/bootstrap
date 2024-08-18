@@ -104,6 +104,10 @@ Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/
 
 ### Running the playbook
 
+> [!NOTE]
+>
+> Depending on how much RAM and CPU you have allocated the VM, this may run for up to 15 minutes.
+
 3. Then, trigger the playbook to run via:
     ```sh
     # By default, vault password is 'password'
@@ -168,28 +172,33 @@ While working through the docs, anything you see in a highlighted box like this,
 
 
 1. Open PowerShell as Administrator (Start menu > PowerShell > right-click > Run as Administrator) and enter this command:
-    ```dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart```
+    
+    ```
+    dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+    ```
 
-1. Install [Ubuntu through WSL](https://www.microsoft.com/store/productId/9PDXGNCFSCZV?ocid=pdpshare).  Use the Microsoft Store link to simplify the process. After installing Ubuntu, you will need to restart you machine, if you aren't already prompted to.  To simply follow this guide, set the password as `password`.
+1. Install [Ubuntu through WSL](https://www.microsoft.com/store/productId/9PDXGNCFSCZV?ocid=pdpshare).  Use the Microsoft Store link to simplify the process. After installing Ubuntu, you will need to restart you machine, if you aren't already prompted to. 
 
 ![copy](docs/src/assets/images/wsl.png)
 
-1. Next, we'll create a project directory to store the code and installations into. Create a folder in your Documents named 'Projects', then inside it, create another folder called "vm".
+4. After restarting your machine.. Run Ubuntu (Start menu > Ubuntu). Follow the prompts to create a user. To simplify following this guide, set the password as `password`.
+
+5. Next, we'll create a project directory to store the code and installations into. Create a folder in your Documents named 'Projects', then inside it, create another folder called "vm" **(copy the path of the Project folder not vm)**.
 
 ![pwd](docs/src/assets/images/pwd.png)
 
-1. Navigate the powershell terminal to the folder by using:
+6. Navigate the powershell terminal to the folder by using:
     ```cd [PASTE PATH AFTER A SPACE]```
 
-1. Next, download the project to your own machine from github using 
-    `git clone https://github.com/tibia-oce/bootstrap.git && cd bootstrap`.
+7. Next, download the project to your own machine from github using 
 
-    ![clone](docs/src/assets/images/clone.png)
+    ```
+    git clone https://github.com/tibia-oce/bootstrap.git && cd bootstrap
+    ```
 
-1. Once the install is finished, close that terminal, open another powershell/cmd prompt from the project directory (../bootstrap) and run:
+8. Once the install is finished, close that terminal, open another powershell/cmd prompt from the project directory (../bootstrap) and run:
     ```bash
     wsl -d Ubuntu
     ```
 
-1. You are now ready to continue on with the rest of the [installation guide](#Setting-up-your-control-node).
-
+9. You are now ready to continue on with the rest of the [installation guide](#Setting-up-your-control-node).
