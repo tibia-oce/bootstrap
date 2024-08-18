@@ -106,6 +106,6 @@
 
 - name: Set permissions for remeres map editor directory
   file:
-    path: /home/{{ deploy_username }}/remeres
+    path: /home/{{ deploy_username }}/remeres-map-editor/remeres
     mode: '0777'
     recurse: yes
