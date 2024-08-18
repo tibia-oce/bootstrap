@@ -1,0 +1,75 @@
+- name: Update package list and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install necessary packages
+  apt:
+    name:
+    - acl
+    - git
+    - libxcb-xinerama0
+    - libxcb-util1
+    - libxkbcommon-x11-0
+    - libprotobuf-dev
+    - protobuf-compiler
+    state: present
+
+- name: Install PHP and clean up unnecessary packages
+  apt:
+    name: "{{ item }}"
+    state: "{{ state }}"
+  loop:
+  - 'python3-launchpadlib'
+  - 'software-properties-common'
+  - 'apt-transport-https'
+  - 'php8.2'
+  - 'php8.2-cli'
+  - 'php8.2-curl'
+  - 'php8.2-fpm'
+  - 'php8.2-gd'
+  - 'php8.2-mysql'
+  - 'php8.2-xml'
+  - 'php8.2-zip'
+  - 'php8.2-bcmath'
+  - 'php8.2-mbstring'
+  - 'php8.2-calendar'
+  vars:
+    state: present
+  when:
+  - ansible_os_family == 'Debian'
+
+- name: Remove old PHP packages
+  apt:
+    name: 'php*'
+    state: absent
+  when:
+  - ansible_os_family == 'Debian'
+
+- name: Remove old Apache packages
+  apt:
+    name: 'apache2*'
+    state: absent
+  when:
+  - ansible_os_family == 'Debian'
+
+- name: Add PHP PPA repository
+  apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+  when:
+  - ansible_os_family == 'Debian'
+
+- name: Update and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Clean up Apache directories
+  file:
+    path: "/etc/apache2"
+    state: absent
+  when:
+  - ansible_os_family == 'Debian'
