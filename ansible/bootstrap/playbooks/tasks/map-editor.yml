@@ -1,0 +1,103 @@
+- name: Update package list and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install necessary packages
+  apt:
+    name:
+    - acl
+    - git
+    - libxcb-xinerama0
+    - libxcb-util1
+    - libx11-dev
+    - libxkbcommon-x11-0
+    - libprotobuf-dev
+    - libglew-dev
+    - protobuf-compiler
+    - autoconf
+    - libtool
+    - ca-certificates
+    - curl
+    - zip
+    - unzip
+    - tar
+    - pkg-config
+    - ninja-build
+    - ccache
+    - bison
+    - linux-headers-{{ ansible_kernel }}
+    - libxi-dev
+    - libgl1-mesa-dev
+    - libegl1-mesa-dev
+    - libglu1-mesa-dev
+    - mesa-common-dev
+    - libxrandr-dev
+    - libxxf86vm-dev
+    - libxft-dev
+    - libxext-dev
+    - libwayland-dev
+    - libxkbcommon-dev
+    - libibus-1.0-dev
+    - libasound2-dev
+    - libxmu-dev
+    - libdbus-1-dev
+    - libxtst-dev
+    - linux-libc-dev
+    - libarchive-dev
+    - libwxgtk3.0-gtk3-dev
+    - python3-distutils
+    - libxrender-dev
+    state: present
+
+- name: Clone vcpkg repository
+  git:
+    repo: https://github.com/microsoft/vcpkg
+    dest: ~/vcpkg
+    clone: yes
+
+- name: Run vcpkg bootstrap script
+  command: ~/vcpkg/bootstrap-vcpkg.sh
+  args:
+    chdir: ~/vcpkg
+
+- name: Clone otlcient repository
+  git:
+    repo: "{{ map_editor_url }}"
+    dest: /home/{{ deploy_username }}/remeres-map-editor
+    clone: yes
+    depth: 1
+    force: yes
+
+- name: Create build directory
+  file:
+    path: /home/{{ deploy_username }}/remeres-map-editor/build
+    state: directory
+    recurse: yes
+
+- name: Set ACLs for otlcient directory
+  command: setfacl -R -m g:www-data:rx /home/{{ deploy_username }}/remeres-map-editor
+  args:
+    chdir: ~
+
+- name: Configure the build
+  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
+  args:
+    chdir: /home/{{ deploy_username }}/remeres-map-editor/build
+
+- name: Compile the client binary
+  command: cmake --build linux-release -- -j4
+  args:
+    chdir: /home/{{ deploy_username }}/remeres-map-editor/build
+
+- name: Set binary as executable
+  command: chmod +x /home/{{ deploy_username }}/remeres-map-editor/remeres-map-editor
+
+- name: Set permissions for otlcient directory
+
+  file:
+    path: /home/{{ deploy_username }}/remeres-map-editor
+    mode: '0777'
+    recurse: yes

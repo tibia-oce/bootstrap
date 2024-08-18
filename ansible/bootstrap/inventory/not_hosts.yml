@@ -3,6 +3,9 @@ vm:
     ansible_ssh_port: 22
     ansible_user: user
     deploy_username: user
+    client_repo_url: 'https://github.com/tibia-oce/otclient'
     canary_repo_url: 'https://github.com/tibia-oce/canary.git'
+    assets_repo_url: 'https://github.com/tibia-oce/1340-assets.git'
+    map_editor_url: 'https://github.com/opentibiabr/remeres-map-editor.git'
   hosts:
     0.0.0.0: {}

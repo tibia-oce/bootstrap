@@ -1,0 +1,88 @@
+- name: Update package list and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install necessary packages
+  apt:
+    name:
+    - acl
+    - git
+    - libxcb-xinerama0
+    - libxcb-util1
+    - libx11-dev
+    - libxkbcommon-x11-0
+    - libprotobuf-dev
+    - libglew-dev
+    - protobuf-compiler
+    state: present
+
+- name: Clone vcpkg repository
+  git:
+    repo: https://github.com/microsoft/vcpkg
+    dest: ~/vcpkg
+    clone: yes
+
+- name: Run vcpkg bootstrap script
+  command: ~/vcpkg/bootstrap-vcpkg.sh
+  args:
+    chdir: ~/vcpkg
+
+- name: Clone otlcient repository
+  git:
+    repo: "{{ client_repo_url }}"
+    dest: /home/{{ deploy_username }}/otclient
+    clone: yes
+    depth: 1
+    force: yes
+
+- name: Clone otclient assets to a temporary directory
+  git:
+    repo: "{{ assets_repo_url }}"
+    dest: /tmp/otlcient-assets
+    clone: yes
+    depth: 1
+    force: yes
+
+- name: Copy assets folder to the target directory
+  copy:
+    src: /tmp/otlcient-assets/assets/
+    dest: /home/{{ deploy_username }}/otclient/data/things/1340/
+    remote_src: yes
+
+- name: Clean up temporary directory
+  file:
+    path: /tmp/otlcient-assets
+    state: absent
+
+- name: Create build directory
+  file:
+    path: /home/{{ deploy_username }}/otclient/build
+    state: directory
+    recurse: yes
+
+- name: Set ACLs for otlcient directory
+  command: setfacl -R -m g:www-data:rx /home/{{ deploy_username }}/otclient
+  args:
+    chdir: ~
+
+- name: Configure the build
+  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
+  args:
+    chdir: /home/{{ deploy_username }}/otclient/build
+
+- name: Compile the client binary
+  command: cmake --build linux-release -- -j4
+  args:
+    chdir: /home/{{ deploy_username }}/otclient/build
+
+- name: Set binary as executable
+  command: chmod +x /home/{{ deploy_username }}/otclient/otclient
+
+- name: Set permissions for otlcient directory
+  file:
+    path: /home/{{ deploy_username }}/otclient
+    mode: '0777'
+    recurse: yes

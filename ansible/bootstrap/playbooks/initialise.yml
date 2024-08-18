@@ -3,6 +3,7 @@
   become: true
   gather_facts: true
   any_errors_fatal: true
+
   pre_tasks:
   - name: 'bootstrap: include secrets'
     ansible.builtin.include_vars:
@@ -46,6 +47,12 @@
 
   - name: Include vcpkg tasks
     ansible.builtin.import_tasks: ./tasks/vcpkg.yml
+
+  - name: Include client tasks
+    ansible.builtin.import_tasks: ./tasks/client.yml
+
+  - name: Include map-editor tasks
+    ansible.builtin.import_tasks: ./tasks/map-editor.yml
 
   handlers:
   - name: restart ssh
