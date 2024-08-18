@@ -25,7 +25,6 @@
     - unzip
     - tar
     - pkg-config
-    - ninja-build
     - ccache
     - bison
     - linux-headers-{{ ansible_kernel }}
@@ -50,6 +49,10 @@
     - libwxgtk3.0-gtk3-dev
     - python3-distutils
     - libxrender-dev
+    - ninja-build
+    - build-essential
+    - python3-jinja2
+    - libqrencode-dev
     state: present
 
 - name: Clone vcpkg repository
@@ -63,7 +66,7 @@
   args:
     chdir: ~/vcpkg
 
-- name: Clone otlcient repository
+- name: Clone remeres map editor repository
   git:
     repo: "{{ map_editor_url }}"
     dest: /home/{{ deploy_username }}/remeres-map-editor
@@ -71,13 +74,19 @@
     depth: 1
     force: yes
 
+- name: Set permissions for remeres map editor directory
+  file:
+    path: /home/{{ deploy_username }}/remeres-map-editor
+    mode: '0777'
+    recurse: yes
+
 - name: Create build directory
   file:
     path: /home/{{ deploy_username }}/remeres-map-editor/build
     state: directory
     recurse: yes
 
-- name: Set ACLs for otlcient directory
+- name: Set ACLs for remeres map editor directory
   command: setfacl -R -m g:www-data:rx /home/{{ deploy_username }}/remeres-map-editor
   args:
     chdir: ~
@@ -87,17 +96,16 @@
   args:
     chdir: /home/{{ deploy_username }}/remeres-map-editor/build
 
-- name: Compile the client binary
+- name: Compile the remeres map editor binary
   command: cmake --build linux-release -- -j4
   args:
     chdir: /home/{{ deploy_username }}/remeres-map-editor/build
 
 - name: Set binary as executable
-  command: chmod +x /home/{{ deploy_username }}/remeres-map-editor/remeres-map-editor
+  command: chmod +x /home/{{ deploy_username }}/remeres-map-editor/remeres
 
-- name: Set permissions for otlcient directory
-
+- name: Set permissions for remeres map editor directory
   file:
-    path: /home/{{ deploy_username }}/remeres-map-editor
+    path: /home/{{ deploy_username }}/remeres
     mode: '0777'
     recurse: yes

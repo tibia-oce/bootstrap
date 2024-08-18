@@ -23,7 +23,6 @@ For a brief rundown on what Ansible is and what it's used for see [here](https:/
 
 ![Ansible](docs/src/assets/images/ansible.jpg)
 
-
 <br>
 
 ## Requirements
