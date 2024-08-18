@@ -26,7 +26,6 @@
     - docker-buildx-plugin
     - docker-compose-plugin
     state: present
-    mode: '0755'
 
 - name: start and enable docker daemon
   service:
