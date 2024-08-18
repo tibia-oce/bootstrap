@@ -101,11 +101,14 @@
   args:
     chdir: /home/{{ deploy_username }}/remeres-map-editor/build
 
-- name: Set binary as executable
-  command: chmod +x /home/{{ deploy_username }}/remeres-map-editor/remeres
-
 - name: Set permissions for remeres map editor directory
   file:
-    path: /home/{{ deploy_username }}/remeres-map-editor/remeres
-    mode: '0777'
+    path: /home/{{ deploy_username }}/remeres-map-editor
+    state: directory
     recurse: yes
+    mode: '0755'
+
+- name: Set binary as executable
+  file:
+    path: /home/{{ deploy_username }}/remeres-map-editor/remeres
+    mode: '0755'

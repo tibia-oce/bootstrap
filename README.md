@@ -149,14 +149,6 @@ ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:loc
 
 <br>
 
-## Furture Improvements
-
-- Improve new user creation and deploy user creation/swap
-- Rather than force clone on vcpkg, use git stash
-- Add a remote secret server (HashiCorp, AWS?)
-
-<br>
-
 ## New to git
 
 Because Ansible requires a bash environment (used by Mac or Linux), we'll be using WSL (Windows subsystem for Linux) on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we will be setting up later!
@@ -204,3 +196,12 @@ While working through the docs, anything you see in a highlighted box like this,
 
 8. You are now ready to continue on with the rest of the [installation guide](#Setting-up-your-control-node).
 
+
+<br>
+
+## Furture Improvements
+
+- Build a github pages book
+- Find an alternative to using 'gio' to update executable metadata
+- Improve new user creation and deploy user creation/swap
+- Rather than force clone, use stash

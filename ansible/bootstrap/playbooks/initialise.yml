@@ -51,6 +51,9 @@
   - name: Include client tasks
     ansible.builtin.import_tasks: ./tasks/client.yml
 
+  - name: Include executables tasks
+    ansible.builtin.import_tasks: ./tasks/executables.yml
+
   - name: Include map-editor tasks
     ansible.builtin.import_tasks: ./tasks/map-editor.yml
 
