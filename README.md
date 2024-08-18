@@ -38,7 +38,7 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 
 Because Ansible requires a bash environment, we'll be using WSL on Windows, to allow us to use Linux applications and Bash command-line tools directly on Windows.  This is different from the VM WorkStation we will be setting up!
 
-1. Install an instance of [Ubuntu through WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
+1. Install an instance of [Ubuntu through WSL](https://learn.microsoft.com/en-us/windows/wsl/install).  You may require rebooting your machine after this step, and repeating the command.
     ```bash
     wsl --install -d Ubuntu
     ```
@@ -48,18 +48,14 @@ Because Ansible requires a bash environment, we'll be using WSL on Windows, to a
     wsl -d Ubuntu
     ```
 
-3. Set a shortcut to the project working directory
+3. Install 'task' (this will be used to shortcut a number of commands throughout this project)
     ```bash
-    echo 'export BOOTSTRAP_PROJECT_DIR=$(pwd)' >> ~/.bashrc && source ~/.bashrc
+    sudo snap install task --classic
     ```
 
-4. Install 'task' (this will be used to shortcut a number of commands throughout this project)
+4. Install python and launch a virtual environment to set up Ansible in (this may take a few minutes).
     ```bash
-    sudo snap install task --classic && cd $BOOTSTRAP_PROJECT_DIR
-    ```
-
-5. Install python and launch a virtual environment to set up Ansible in (this may take a few minutes).
-    ```bash
+    # The password prompt is for your VM
     task environment:python
     ```
 
@@ -72,52 +68,53 @@ Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/
 2. After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/).  
 
 3. When setting up the profile for the first time, set:
-    - name: ```whatever```
     - username: ```user```
     - password: ```password```
 
 4. If you didn't enable this during your Ubuntu installation, set up the SSH server so that your control machine can talk to your managed node via SSH.
     ```
+    # Open a new terminal and run:
     sudo apt update
     sudo apt install openssh-server
     sudo systemctl start ssh
     sudo systemctl enable ssh
     ```
 
-### Finding your Ubuntu IP
-
-1. To find the IP address of the VM, open a terminal and use:
+5. To find the IP address of the VM, use:
     ```sh
     # To copy from a VM it's often easiest to right click and select copy
     ip addr show ens33 | grep -oP 'inet \K[\d.]+'
     ```
 
-2.  Back on your control machine, we'll generate a signed SSH key and place the tail in your control node so that after this process, your VM is secured:
-    ```sh
-    # Where '0.0.0.0' is the IP from the previous command
-    task environment:keys host=0.0.0.0  # optional: user=...
-    ```
 
 <br>
 
 ## Installation
 
+> [!NOTE]
+>
+> Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can [rekey the vault](#Updating-secrets) with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
+
 ### Copy required configs
 
-Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can [rekey the vault](#Updating-secrets) with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
+1. Back on your control machine, we'll generate a signed SSH key and place the tail in your control node so that after this process, your VM is secured:
+    ```sh
+    # Enter your VM IP address from above (optional: user)
+    task environment:keys host=192.168.238.142
+    ```
 
-```sh
-task secrets:copy host=0.0.0.0 # Where '0.0.0.0' is the IP from the previous command
-```
+2. This task will copy the dummy secrets and host name files.  It will update the host list with the value you provide. 
+    ```sh
+    task secrets:copy host=192.168.238.142 # Where '0.0.0.0' is the IP from the previous command
+    ```
 
 ### Running the playbook
 
-Finally, trigger the playbook to run via:
-
-```sh
-# BECOME password & vault-password are 'password' by default
-task ansible:run
-```
+3. Then, trigger the playbook to run via:
+    ```sh
+    # By default, vault password is 'password'
+    task ansible:run
+    ```
 
 <br>
 
@@ -160,20 +157,31 @@ ssh -L 8080:localhost:80 -L 7171:localhost:7171 -L 7172:localhost:7172 -L 22:loc
 
 1. To work through this repository you will require first installing [Git](https://github.com/git-for-windows/git/releases/download/v2.46.0.windows.1/Git-2.46.0-64-bit.exe).
 
-2. Next you need to allocate a folder to download this projects code to. 
+2. Next you need to allocate a folder to download this projects code to.. Use something like `../Documents/Projects/`
 
 ![pwd](docs/src/assets/images/pwd.png)
 
 3. Copy the path of the new folder you've created and open a powershell terminal
 
-4. Navigate the powershell terminal to the folder by using:
-    ```cd [ENTER PATH HERE]```
+4. While you are here, it might be a good practice to create a new folder the VM installation (name it something like "Ubuntu")
 
-5. Next, download the project to your own machine from github using `git clone https://github.com/tibia-oce/bootstrap.git`.
+5. Navigate the powershell terminal to the folder by using:
+    ```cd [PASTE PATH AFTER A SPACE]```
+
+![cd](docs/src/assets/images/cd.png)
+
+6. Next, download the project to your own machine from github using 
+    `git clone https://github.com/tibia-oce/bootstrap.git`.
 
 ![clone](docs/src/assets/images/clone.png)
 
-6. Finally, navigate your powershell terminal into the new project download
+7. Finally, navigate your powershell terminal into the new project download
     ```cd bootstrap```
 
-7. You are now ready to continue on with the rest of the [installation guide](#control-node).
+8. Open PowerShell as Administrator (Start menu > PowerShell > right-click > Run as Administrator) and enter this command:
+    ```dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart```
+
+9. https://www.microsoft.com/store/productId/9PDXGNCFSCZV?ocid=pdpshare
+
+10. You are now ready to continue on with the rest of the [installation guide](#control-node).
+
