@@ -36,7 +36,11 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 
 ### Setting up your control node
 
-This section assumes you are running in a Linux environment (WSL or otherwise).
+1. Clone the repository:
+
+    ```
+    git clone https://github.com/tibia-oce/bootstrap.git && cd bootstrap
+    ```
 
 1. Install 'task' (this will be used to shortcut a number of commands throughout this project)
     ```bash
@@ -64,6 +68,9 @@ Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/
 3. When setting up the profile for the first time, set:
     - username: ```user```
     - password: ```password```
+    - storage size: ```45gb```
+    - cpu: ```4 cores```
+    - memmory: ```6gb```
 
 4. If you didn't enable this during your Ubuntu installation, set up the SSH server so that your control machine can talk to your managed node via SSH.
     ```
@@ -190,15 +197,11 @@ While working through the docs, anything you see in a highlighted box like this,
 6. Navigate the powershell terminal to the folder by using:
     ```cd [PASTE PATH AFTER A SPACE]```
 
-7. Next, download the project to your own machine from github using 
+7. Activate your WSL environment
 
-    ```
-    git clone https://github.com/tibia-oce/bootstrap.git && cd bootstrap
-    ```
-
-8. Once the install is finished, close that terminal, open another powershell/cmd prompt from the project directory (../bootstrap) and run:
     ```bash
     wsl -d Ubuntu
     ```
 
-9. You are now ready to continue on with the rest of the [installation guide](#Setting-up-your-control-node).
+8. You are now ready to continue on with the rest of the [installation guide](#Setting-up-your-control-node).
+
