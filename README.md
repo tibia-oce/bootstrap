@@ -8,11 +8,13 @@
 
 > [!NOTE]
 >
-> This project is targetted at users who only work from a Windows machine, and therefor only tested with Ubuntu 22.04 Server.  If you are running Mac and Linux already, you'll have to [configure the compiler and libaries](#) from source yourself.
+> This project is targetted at users who typically only work from a Windows machine and may be new to development. It is only tested with Ubuntu 22.04 Desktop with VMWare for Windows.  Additionally, secret management has been simplified signifcantly, so I would not recommend using this configuration outside of this use case.
 
 Historically, managing Tibia private servers involved manually setting up and maintaining [XAMPP](https://www.apachefriends.org/), [MySQL](https://www.mysql.com/), and [PHPMyAdmin](https://www.phpmyadmin.net/) on bare-metal with a bunch of scripts and SSH. Often this meant to develop and test new code, you would have to creates sets of the web server stack and code to develop on... which becomes very cumbersome.
 
-This repository contains all the information required to set up a test/dev environment and simplify compiling with [Ansible](https://www.ansible.com/).  The [playbook](ansible\bootstrap\playbooks\initialise.yml) and scripts in the project will take you through creating a VM on your Windows machine that runs [Ubuntu 22.04 desktop](https://releases.ubuntu.com/jammy/).  You will be able to work on your own isolated copy of the latest server, client, launcher and website without haven't to go through too much effort to set anything up initially.  Beyond setting up just the server repositories and developer environment, it also configures what's described in the article ["My First 5 Minutes On A Server; Or, Essential Security for Linux Servers"](https://web.archive.org/web/20201112012219/https://plusbryan.com/my-first-5-minutes-on-a-server-or-essential-security-for-linux-servers). 
+This repository contains all the information required to set up a test/dev environment and simplify compiling with [Ansible](https://www.ansible.com/).  The [playbook](ansible\bootstrap\playbooks\initialise.yml) and scripts in the project will take you through creating a VM on your Windows machine that runs [Ubuntu 22.04 desktop](https://releases.ubuntu.com/jammy/).  You will be able to work on your own isolated copy of the latest server, client, launcher and website without haven't to go through too much effort to set anything up initially.  Beyond setting up just the server repositories and developer environment, it also configures alot of what is described in the article ["My First 5 Minutes On A Server; Or, Essential Security for Linux Servers"](https://web.archive.org/web/20201112012219/https://plusbryan.com/my-first-5-minutes-on-a-server-or-essential-security-for-linux-servers). 
+
+<br>
 
 ![Ubuntu desktop](docs/src/assets/images/ubuntu.png)
 

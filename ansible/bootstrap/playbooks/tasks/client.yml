@@ -60,11 +60,10 @@
     mode: '0777'
     recurse: yes
 
-- name: Create directory for 'things' in otclient data
+- name: Remove existing 'things' directory if it exists
   file:
     path: /home/{{ deploy_username }}/repos/otclient/data/things
-    state: directory
-    recurse: yes
+    state: absent
 
 - name: Create symlink for 'things' directory
   file:

@@ -9,6 +9,7 @@
   apt:
     name:
     - git
+    - git-lfs
     state: present
 
 - name: Ensure .netrc file exists with correct permissions
@@ -79,6 +80,16 @@
     repo: "{{ assets_url }}"
     dest: "/home/{{ deploy_username }}/repos/assets"
     force: yes
+
+- name: Initialize Git LFS
+  command: git lfs install
+  args:
+    chdir: "/home/{{ deploy_username }}/repos/assets"
+
+- name: Pull LFS files for assets repository
+  command: git lfs pull
+  args:
+    chdir: "/home/{{ deploy_username }}/repos/assets"
 
 - name: Set permissions for all repository directories
   file:
