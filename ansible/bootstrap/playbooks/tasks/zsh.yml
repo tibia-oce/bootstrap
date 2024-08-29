@@ -1,0 +1,60 @@
+- name: Install Zsh
+  apt:
+    name: zsh
+    state: present
+
+- name: Change default shell to Zsh for the current user
+  shell: chsh -s "$(which zsh)" "{{ deploy_username }}"
+  become: true
+  become_user: root
+
+- name: Install Oh My Zsh
+  become: true
+  become_user: "{{ deploy_username }}"
+  shell: |
+    curl -Lo install.sh https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh
+    sh install.sh --unattended
+  args:
+    creates: /home/{{ deploy_username }}/.oh-my-zsh
+
+- name: Install powerlevel10k theme
+  become: true
+  become_user: "{{ deploy_username }}"
+  git:
+    repo: https://github.com/romkatv/powerlevel10k.git
+    dest: "/home/{{ deploy_username }}/.oh-my-zsh/custom/themes/powerlevel10k"
+    depth: 1
+
+- name: Set Oh My Zsh theme to 'powerlevel10k'
+  become: true
+  become_user: "{{ deploy_username }}"
+  lineinfile:
+    path: "/home/{{ deploy_username }}/.zshrc"
+    regexp: '^ZSH_THEME='
+    line: 'ZSH_THEME="powerlevel10k/powerlevel10k"'
+
+- name: Ensure .zshrc is sourced in the Zsh profile
+  become: true
+  become_user: "{{ deploy_username }}"
+  lineinfile:
+    path: "/home/{{ deploy_username }}/.zshrc"
+    regexp: '^source'
+    line: 'source /home/{{ deploy_username }}/.zshrc'
+    state: present
+
+- name: Remove Oh My Zsh installation script
+  become: true
+  become_user: "{{ deploy_username }}"
+  file:
+    path: "/home/{{ deploy_username }}/install.sh"
+    state: absent
+
+- name: Copy custom .zshrc template from control node to remote
+  become: true
+  become_user: "{{ deploy_username }}"
+  template:
+    src: templates/zsh/zshrc.j2
+    dest: "/home/{{ deploy_username }}/.zshrc"
+    owner: "{{ deploy_username }}"
+    group: "{{ deploy_username }}"
+    mode: '0644'

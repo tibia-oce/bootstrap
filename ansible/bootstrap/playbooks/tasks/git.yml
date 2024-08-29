@@ -1,0 +1,127 @@
+- name: Update package list and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install necessary packages
+  apt:
+    name:
+    - git
+    state: present
+
+- name: Ensure .netrc file exists with correct permissions
+  file:
+    path: ~/.netrc
+    state: touch
+    mode: '0600'
+
+- name: Store GitHub Personal Access Token for github.com and api.github.com in .netrc
+  blockinfile:
+    path: "/home/{{ deploy_username }}/.netrc"
+    block: |
+      machine github.com
+      login {{ github_username }}
+      password {{ github_token }}
+
+      machine api.github.com
+      login {{ github_username }}
+      password {{ github_token }}
+    create: yes
+    mode: '0600'
+
+- name: Ensure the repos directory exists
+  file:
+    path: "/home/{{ deploy_username }}/repos"
+    state: directory
+    mode: '0777'
+
+- name: Set permissions for repos directory and all subdirectories
+  file:
+    path: "/home/{{ deploy_username }}/repos"
+    mode: '0777'
+    recurse: yes
+
+- name: Ensure correct ownership of the repos directory
+  file:
+    path: "/home/{{ deploy_username }}/repos"
+    owner: "{{ deploy_username }}"
+    group: "{{ deploy_username }}"
+    recurse: yes
+
+- name: Clone website repository
+  git:
+    repo: "{{ website_url }}"
+    dest: "/home/{{ deploy_username }}/repos/website"
+    force: yes
+
+- name: Clone launcher repository
+  git:
+    repo: "{{ launcher_url }}"
+    dest: "/home/{{ deploy_username }}/repos/launcher"
+    force: yes
+
+- name: Clone otclient repository
+  git:
+    repo: "{{ otclient_url }}"
+    dest: "/home/{{ deploy_username }}/repos/otclient"
+    force: yes
+
+- name: Clone server repository
+  git:
+    repo: "{{ server_url }}"
+    dest: "/home/{{ deploy_username }}/repos/server"
+    force: yes
+
+- name: Clone assets repository
+  git:
+    repo: "{{ assets_url }}"
+    dest: "/home/{{ deploy_username }}/repos/assets"
+    force: yes
+
+- name: Set permissions for all repository directories
+  file:
+    path: "/home/{{ deploy_username }}/repos"
+    mode: '0777'
+    recurse: yes
+
+- name: Ensure correct ownership of all repository directories
+  file:
+    path: "/home/{{ deploy_username }}/repos"
+    owner: "{{ deploy_username }}"
+    group: "{{ deploy_username }}"
+    recurse: yes
+
+- name: Set Git to ignore permission changes
+  command: git config core.fileMode false
+  args:
+    chdir: "/home/{{ deploy_username }}/repos/{{ item }}"
+  with_items:
+  - website
+  - launcher
+  - otclient
+  - server
+  - assets
+
+- name: Set Git to avoid line ending conversions
+  command: git config core.autocrlf input
+  args:
+    chdir: "/home/{{ deploy_username }}/repos/{{ item }}"
+  with_items:
+  - website
+  - launcher
+  - otclient
+  - server
+  - assets
+
+- name: Reset any changes in the repositories
+  command: git reset --hard HEAD
+  args:
+    chdir: "/home/{{ deploy_username }}/repos/{{ item }}"
+  with_items:
+  - website
+  - launcher
+  - otclient
+  - server
+  - assets

@@ -39,23 +39,32 @@
   - name: Include deploy tasks
     ansible.builtin.import_tasks: ./tasks/deploy.yml
 
+  - name: Include git tasks
+    ansible.builtin.import_tasks: ./tasks/git.yml
+
+  - name: Include tools tasks
+    ansible.builtin.import_tasks: ./tasks/tools.yml
+
   - name: Include vscode tasks
     ansible.builtin.import_tasks: ./tasks/vscode.yml
 
   - name: Include docker tasks
     ansible.builtin.import_tasks: ./tasks/docker.yml
 
-  - name: Include vcpkg tasks
-    ansible.builtin.import_tasks: ./tasks/vcpkg.yml
-
   - name: Include client tasks
     ansible.builtin.import_tasks: ./tasks/client.yml
 
-  - name: Include executables tasks
-    ansible.builtin.import_tasks: ./tasks/executables.yml
+  - name: Include desktop tasks
+    ansible.builtin.import_tasks: ./tasks/desktop.yml
 
   - name: Include map-editor tasks
     ansible.builtin.import_tasks: ./tasks/map-editor.yml
+
+  - name: Include oh-my-zsh tasks
+    ansible.builtin.import_tasks: ./tasks/zsh.yml
+
+  # - name: Include vcpkg tasks
+  #   ansible.builtin.import_tasks: ./tasks/vcpkg.yml
 
   handlers:
   - name: restart ssh

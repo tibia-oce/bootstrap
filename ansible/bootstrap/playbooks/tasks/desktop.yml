@@ -1,0 +1,36 @@
+- name: Create a desktop shortcut to the repos folder
+  file:
+    src: "/home/{{ deploy_username }}/repos"
+    dest: "/home/{{ deploy_username }}/Desktop/repos"
+    state: link
+
+- name: Create a desktop shortcut to the tools folder
+  file:
+    src: "/home/{{ deploy_username }}/tools"
+    dest: "/home/{{ deploy_username }}/Desktop/tools"
+    state: link
+
+- name: Create a desktop shortcut for VSCode
+  template:
+    src: vscode/vscode.desktop.j2
+    dest: "/home/{{ deploy_username }}/Desktop/vscode.desktop"
+    mode: '0755'
+
+- name: Create a desktop shortcut for Terminal
+  template:
+    src: terminal/terminal.desktop.j2
+    dest: "/home/{{ deploy_username }}/Desktop/terminal.desktop"
+    mode: '0755'
+
+- name: Create a desktop shortcut for the client
+  template:
+    src: client/client.j2
+    dest: "/home/{{ deploy_username }}/Desktop/client.desktop"
+    mode: '0755'
+
+- name: Ensure the .desktop file is executable
+  file:
+    path: /home/{{ deploy_username }}/Desktop/client.desktop
+    mode: '0755'
+    owner: "{{ deploy_username }}"
+    group: "{{ deploy_username }}"

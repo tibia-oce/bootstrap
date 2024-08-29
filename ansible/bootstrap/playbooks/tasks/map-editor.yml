@@ -69,46 +69,48 @@
 - name: Clone remeres map editor repository
   git:
     repo: "{{ map_editor_url }}"
-    dest: /home/{{ deploy_username }}/remeres-map-editor
+    dest: /home/{{ deploy_username }}/tools/source/remeres-map-editor
     clone: yes
     depth: 1
     force: yes
 
 - name: Set permissions for remeres map editor directory
   file:
-    path: /home/{{ deploy_username }}/remeres-map-editor
+    path: /home/{{ deploy_username }}/tools/source/remeres-map-editor
     mode: '0777'
     recurse: yes
 
 - name: Create build directory
   file:
-    path: /home/{{ deploy_username }}/remeres-map-editor/build
+    path: /home/{{ deploy_username }}/tools/source/remeres-map-editor/build
     state: directory
     recurse: yes
+    mode: '0777'
 
 - name: Set ACLs for remeres map editor directory
-  command: setfacl -R -m g:www-data:rx /home/{{ deploy_username }}/remeres-map-editor
+  command: setfacl -R -m g:www-data:rwX /home/{{ deploy_username }}/tools/source/remeres-map-editor
   args:
     chdir: ~
 
 - name: Configure the build
-  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
+  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake ..
   args:
-    chdir: /home/{{ deploy_username }}/remeres-map-editor/build
+    chdir: /home/{{ deploy_username }}/tools/source/remeres-map-editor/build
 
 - name: Compile the remeres map editor binary
-  command: cmake --build linux-release -- -j4
+  command: cmake --build . -- -j4
   args:
-    chdir: /home/{{ deploy_username }}/remeres-map-editor/build
+    chdir: /home/{{ deploy_username }}/tools/source/remeres-map-editor/build
 
-- name: Set permissions for remeres map editor directory
+- name: Create a symlink to the compiled binary in /tools/
   file:
-    path: /home/{{ deploy_username }}/remeres-map-editor
+    src: /home/{{ deploy_username }}/tools/source/remeres-map-editor/remeres
+    dest: /home/{{ deploy_username }}/tools/remeres
+    state: link
+
+- name: Set final permissions for remeres map editor directory
+  file:
+    path: /home/{{ deploy_username }}/tools/source
     state: directory
     recurse: yes
-    mode: '0755'
-
-- name: Set binary as executable
-  file:
-    path: /home/{{ deploy_username }}/remeres-map-editor/remeres
-    mode: '0755'
+    mode: '0777'

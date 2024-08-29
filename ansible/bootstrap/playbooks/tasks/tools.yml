@@ -1,0 +1,24 @@
+- name: Update package list and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install necessary packages
+  apt:
+    name:
+    - git
+    state: present
+
+- name: Ensure the repos directory exists
+  file:
+    path: "/home/{{ deploy_username }}/tools"
+    state: directory
+    mode: '0755'
+
+- name: Set permissions for repos directory
+  file:
+    path: "/home/{{ deploy_username }}/tools"
+    mode: '0777'
+    recurse: no

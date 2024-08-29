@@ -22,67 +22,40 @@
 - name: Clone vcpkg repository
   git:
     repo: https://github.com/microsoft/vcpkg
-    dest: ~/vcpkg
+    dest: ~/repos/vcpkg
     clone: yes
 
 - name: Run vcpkg bootstrap script
-  command: ~/vcpkg/bootstrap-vcpkg.sh
+  command: ~/repos/vcpkg/bootstrap-vcpkg.sh
   args:
-    chdir: ~/vcpkg
-
-- name: Clone otlcient repository
-  git:
-    repo: "{{ client_repo_url }}"
-    dest: /home/{{ deploy_username }}/otclient
-    clone: yes
-    depth: 1
-    force: yes
-
-- name: Clone otclient assets to a temporary directory
-  git:
-    repo: "{{ assets_repo_url }}"
-    dest: /tmp/otlcient-assets
-    clone: yes
-    depth: 1
-    force: yes
-
-- name: Copy assets folder to the target directory
-  copy:
-    src: /tmp/otlcient-assets/assets/
-    dest: /home/{{ deploy_username }}/otclient/data/things/1340/
-    remote_src: yes
-
-- name: Clean up temporary directory
-  file:
-    path: /tmp/otlcient-assets
-    state: absent
+    chdir: ~/repos/vcpkg
 
 - name: Create build directory
   file:
-    path: /home/{{ deploy_username }}/otclient/build
+    path: /home/{{ deploy_username }}/repos/otclient/build
     state: directory
     recurse: yes
 
 - name: Set ACLs for otlcient directory
-  command: setfacl -R -m g:www-data:rx /home/{{ deploy_username }}/otclient
+  command: setfacl -R -m g:www-data:rx /home/{{ deploy_username }}/repos/otclient
   args:
     chdir: ~
 
 - name: Configure the build
-  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
+  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/repos/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
   args:
-    chdir: /home/{{ deploy_username }}/otclient/build
+    chdir: /home/{{ deploy_username }}/repos/otclient/build
 
 - name: Compile the client binary
   command: cmake --build linux-release -- -j4
   args:
-    chdir: /home/{{ deploy_username }}/otclient/build
+    chdir: /home/{{ deploy_username }}/repos/otclient/build
 
 - name: Set binary as executable
-  command: chmod +x /home/{{ deploy_username }}/otclient/otclient
+  command: chmod +x /home/{{ deploy_username }}/repos/otclient/otclient
 
 - name: Set permissions for otlcient directory
   file:
-    path: /home/{{ deploy_username }}/otclient
+    path: /home/{{ deploy_username }}/repos/otclient
     mode: '0777'
     recurse: yes

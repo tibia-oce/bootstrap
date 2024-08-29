@@ -10,11 +10,11 @@
 >
 > This project is targetted at users who only work from a Windows machine, and therefor only tested with Ubuntu 22.04 Server.  If you are running Mac and Linux already, you'll have to [configure the compiler and libaries](#) from source yourself.
 
-Historically, managing Tibia private servers involved manually setting up and maintaining [XAMPP](https://www.apachefriends.org/), [MySQL](https://www.mysql.com/), and [PHPMyAdmin](https://www.phpmyadmin.net/) on Windows machines, which required direct intervention for troubleshooting and service management.  Often this meant to develop and test new code, you would have to creates sets of the web server stack and code to develop on... which becomes very cumbersome.
+Historically, managing Tibia private servers involved manually setting up and maintaining [XAMPP](https://www.apachefriends.org/), [MySQL](https://www.mysql.com/), and [PHPMyAdmin](https://www.phpmyadmin.net/) on bare-metal with a bunch of scripts and SSH. Often this meant to develop and test new code, you would have to creates sets of the web server stack and code to develop on... which becomes very cumbersome.
 
-Although the open source Tibia dev community hasn't transitioned entirely into a microservice architectures - they are beginning to port services to Linux and supporting [Docker](https://www.docker.com/).  This offers significant advantages by decoupling services into independent containers, enhancing fault tolerance, scalability, and deployment consistency. Additionally, using [Ansible](https://www.ansible.com/) for configuring development and test environments automates setup tasks, ensures consistency across environments, and reduces manual errors.
+This repository contains all the information required to set up a test/dev environment and simplify compiling with [Ansible](https://www.ansible.com/).  The [playbook](ansible\bootstrap\playbooks\initialise.yml) and scripts in the project will take you through creating a VM on your Windows machine that runs [Ubuntu 22.04 desktop](https://releases.ubuntu.com/jammy/).  You will be able to work on your own isolated copy of the latest server, client, launcher and website without haven't to go through too much effort to set anything up initially.  Beyond setting up just the server repositories and developer environment, it also configures what's described in the article ["My First 5 Minutes On A Server; Or, Essential Security for Linux Servers"](https://web.archive.org/web/20201112012219/https://plusbryan.com/my-first-5-minutes-on-a-server-or-essential-security-for-linux-servers). 
 
-This repository contains all the information required to set up a test/dev environment and simplify compiling.  The Ansible [playbook](ansible\bootstrap\playbooks\initialise.yml) and scripts in the project will take you through creating a VM on your Windows machine that runs [Ubuntu 22.04 desktop](https://releases.ubuntu.com/jammy/).  You will be able to work on your own isolated copy of the latest server, client, launcher and login proxy without haven't to go through too much effort to set anything up initially.  Beyond setting up just the server repositories and developer environment, it also configures what's described in the article ["My First 5 Minutes On A Server; Or, Essential Security for Linux Servers"](https://web.archive.org/web/20201112012219/https://plusbryan.com/my-first-5-minutes-on-a-server-or-essential-security-for-linux-servers). 
+![Ubuntu desktop](docs/src/assets/images/ubuntu.png)
 
 <br>
 
@@ -33,45 +33,24 @@ For a brief rundown on what Ansible is and what it's used for see [here](https:/
 
 Prior to executing any playbooks, you are required to set up a managed node (a Ubuntu Desktop 22.04 VM using VMWare Workstation) and a control node (your current machine with some small software installations).  
 
-### Setting up your control node
-
-1. Clone the repository:
-
-    ```
-    git clone https://github.com/tibia-oce/bootstrap.git && cd bootstrap
-    ```
-
-1. Install 'task' (this will be used to shortcut a number of commands throughout this project)
-    ```bash
-    sudo snap install task --classic
-    ```
-
-1. Install python and launch a virtual environment to set up Ansible (this may take a few minutes).
-    ```bash
-    # The password prompt is for your VM
-    task environment:python
-    ```
-
 ### Setting up your managed node (Ubuntu Desktop 22.04)
 
 > [!NOTE]
 >
 > When selecting a folder to install to, use the `vm` folder that was created in the [starter guide](#New-to-git).
 
-Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/eli5_pxe_boot_how_do_i_simply_install_ubuntu_from/) a group of machines automatically using another service.. but even ansible is overkill for this project so we are manually installing a VM.
-
 1. Firstly, download and install [VMWare](https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.1/23298084/windows/core/).
 
-2. After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/). 
+2. After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/). Right click and select `settings` so that you can allocate:
+    - storage size: ```60gb```
+    - cpu: ```4 cores```
+    - memmory: ```8gb```
 
-3. When setting up the profile for the first time, set:
+3. Then start the machine... when setting up the profile for the first time, set:
     - username: ```user```
     - password: ```password```
-    - storage size: ```45gb```
-    - cpu: ```4 cores```
-    - memmory: ```6gb```
 
-4. If you didn't enable this during your Ubuntu installation, set up the SSH server so that your control machine can talk to your managed node via SSH.
+4. After the VM starts for the first time, open a `terminal`, and set up the SSH server so that your control machine can talk to your managed node via SSH.
     ```
     # Open a 'terminal' from the app manager and run:
     sudo apt update
@@ -82,8 +61,32 @@ Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/
 
 5. Then find the IP address of the VM
     ```sh
-    # To copy from a VM it's often easiest to right click and select copy
+    # To copy from a VM you can right click and select copy
     ip addr show ens33 | grep -oP 'inet \K[\d.]+'
+    ```
+
+### Setting up your control node
+
+1. Back on your main machine (Windows), clone this repository:
+    ```
+    git clone https://github.com/tibia-oce/bootstrap.git && cd bootstrap
+    ```
+
+1. Activate your WSL environment (if you haven't already)
+
+    ```bash
+    wsl -d Ubuntu
+    ```
+
+1. Install 'task' (this will be used to shortcut a number of commands throughout this project)
+    ```bash
+    sudo snap install task --classic
+    ```
+
+1. Install python and launch a virtual environment to set up Ansible (this may take a few minutes).
+    ```bash
+    # The password prompt is for the VM we just set up ('password')
+    task environment:python
     ```
 
 <br>
@@ -94,18 +97,20 @@ Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/
 >
 > Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can [rekey the vault](#Updating-secrets) with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
 
+If you have previously set up a Github PAT token, then continue... otherwise follow [these instructions](/docs/src/notes/pat.md).
+
 ### Copy required configs
 
 1. Back on your control machine, we'll generate a signed SSH key and place the tail in your control node so that after this process, your VM is secured:
     ```sh
-    # Enter your VM IP address from above (optional: user)
+    # Enter your VM IP address from above next to 'host'
     task environment:keys host=
     ```
 
 2. This task will copy the dummy secrets and host name files.  It will update the host list with the value you provide. 
     ```sh
-    # Enter your VM IP address from above
-    task secrets:copy host=
+    # Add your credentials, where: host is VM IP, github_username is your github email address and github_token is a PAT token
+    task secrets:copy host= github_username= github_token=
     ```
 
 ### Running the playbook
@@ -116,7 +121,7 @@ Typically you would [PXE boot](https://www.reddit.com/r/homelab/comments/p4v4w4/
 
 3. Then, trigger the playbook to run via:
     ```sh
-    # By default, vault password is 'password'
+    # By default, vault password is 'password' and become passsword is initial root user password you used when creating your VM from the iso (i.e. 'password')
     task ansible:run
     ```
 
@@ -194,8 +199,10 @@ While working through the docs, anything you see in a highlighted box like this,
     wsl -d Ubuntu
     ```
 
-8. You are now ready to continue on with the rest of the [installation guide](#Setting-up-your-control-node).
 
+8. If you have previously set up a Github PAT token, then continue... otherwise follow [these instructions](/docs/src/notes/pat.md). **MAKE SURE TO WRITE THIS DOWN SOMEWHERE SAFE.**
+
+9. You are now ready to continue on with the rest of the [installation guide](#Setting-up-your-control-node).
 
 <br>
 

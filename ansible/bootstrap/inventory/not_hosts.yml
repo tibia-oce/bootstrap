@@ -1,5 +1,7 @@
 vm:
   vars:
+    github_username:
+    github_token:
     ansible_ssh_port: 22
     ansible_user: user
     deploy_username: user
@@ -7,5 +9,10 @@ vm:
     canary_repo_url: 'https://github.com/tibia-oce/canary.git'
     assets_repo_url: 'https://github.com/tibia-oce/assets.git'
     map_editor_url: 'https://github.com/opentibiabr/remeres-map-editor.git'
+    website_url: https://github.com/tibia-oce/website.git
+    launcher_url: https://github.com/tibia-oce/launcher.git
+    otclient_url: https://github.com/tibia-oce/otclient.git
+    server_url: https://github.com/tibia-oce/server.git
+    assets_url: https://github.com/tibia-oce/assets.git
   hosts:
     0.0.0.0: {}
