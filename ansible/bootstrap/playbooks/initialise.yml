@@ -51,14 +51,14 @@
   - name: Include docker tasks
     ansible.builtin.import_tasks: ./tasks/docker.yml
 
-  - name: Include client tasks
-    ansible.builtin.import_tasks: ./tasks/client.yml
-
   - name: Include desktop tasks
     ansible.builtin.import_tasks: ./tasks/desktop.yml
 
   - name: Include map-editor tasks
     ansible.builtin.import_tasks: ./tasks/map-editor.yml
+
+  - name: Include client tasks
+    ansible.builtin.import_tasks: ./tasks/client.yml
 
   - name: Include oh-my-zsh tasks
     ansible.builtin.import_tasks: ./tasks/zsh.yml

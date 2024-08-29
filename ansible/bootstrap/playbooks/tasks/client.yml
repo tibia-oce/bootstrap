@@ -59,3 +59,15 @@
     path: /home/{{ deploy_username }}/repos/otclient
     mode: '0777'
     recurse: yes
+
+- name: Create directory for 'things' in otclient data
+  file:
+    path: /home/{{ deploy_username }}/repos/otclient/data/things
+    state: directory
+    recurse: yes
+
+- name: Create symlink for 'things' directory
+  file:
+    src: /home/{{ deploy_username }}/repos/assets/things
+    dest: /home/{{ deploy_username }}/repos/otclient/data/things
+    state: link
