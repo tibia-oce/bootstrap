@@ -95,7 +95,7 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 
 > [!NOTE]
 >
-> Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can [rekey the vault](#Updating-secrets) with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
+> Depending on how much RAM and CPU you have allocated the VM, this may run for up to 15 minutes.
 
 If you have previously set up a Github PAT token, then continue... otherwise follow [these instructions](/docs/src/notes/pat.md).
 
@@ -113,15 +113,9 @@ If you have previously set up a Github PAT token, then continue... otherwise fol
     task secrets:copy host= github_username= github_token=
     ```
 
-### Running the playbook
-
-> [!NOTE]
->
-> Depending on how much RAM and CPU you have allocated the VM, this may run for up to 15 minutes.
-
-3. Then, trigger the playbook to run via:
+3. Finally, trigger the playbook to run via:
     ```sh
-    # By default, vault password is 'password' and become passsword is initial root user password you used when creating your VM from the iso (i.e. 'password')
+    # If you are following this guide as described, both become passsword and vault password is 'password'
     task ansible:run
     ```
 
@@ -129,12 +123,11 @@ If you have previously set up a Github PAT token, then continue... otherwise fol
 
 ## Additional
 
-### Cleanup
-
-1. Remove WSL Ubuntu installation:
-```wsl --unregister Ubuntu```
-
 ### Updating secrets
+
+> [!NOTE]
+>
+> Secrets are contained in an encrypted ansible yaml that can be repackaged to your choosing. By default the vault password is 'password'.  If you would like to improve the security, you can [rekey the vault](#Updating-secrets) with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.
 
 If you would like to improve the security, you can rekey the vault with something more reasonable/secure, and also update the values for the root and dev user of the ubuntu server.  Most of these scripts are idempotent and configurable, so you can go back through the entire process again after creating a new VM with a different set of credentials and simply pass the new values.
 
@@ -143,6 +136,11 @@ If you would like to improve the security, you can rekey the vault with somethin
 task secrets:rekey # used to update the vault password
 task secrets:edit # opens a vim editor to change secrets used for deployments
 ```
+
+### Cleanup
+
+1. Remove WSL Ubuntu installation:
+```wsl --unregister Ubuntu```
 
 ### Tunnelling
 
@@ -210,5 +208,5 @@ While working through the docs, anything you see in a highlighted box like this,
 
 - Build a github pages book
 - Find an alternative to using 'gio' to update executable metadata
-- Improve new user creation and deploy user creation/swap
+- Improve new user creation and deploy user creation/swap (maybe host.yml?)
 - Rather than force clone, use stash
