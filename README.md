@@ -44,7 +44,7 @@ Prior to executing any playbooks, you are required to set up a managed node (a U
 1. Firstly, download and install [VMWare](https://softwareupdate.vmware.com/cds/vmw-desktop/ws/17.5.1/23298084/windows/core/).
 
 2. After that, create a new VM in VMWare with an AMD64 ISO from [here](https://releases.ubuntu.com/jammy/). Right click and select `settings` so that you can allocate:
-    - storage size: ```60gb```
+    - storage size: ```60gb+```
     - cpu: ```4 cores```
     - memmory: ```8gb```
 

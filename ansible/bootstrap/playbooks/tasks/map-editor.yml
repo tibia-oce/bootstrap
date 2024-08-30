@@ -1,116 +1,61 @@
-- name: Update package list and upgrade all packages
-  apt:
-    update_cache: yes
-    upgrade: dist
-    autoremove: yes
-    autoclean: yes
-
 - name: Install necessary packages
   apt:
     name:
     - acl
     - git
-    - libxcb-xinerama0
-    - libxcb-util1
-    - libx11-dev
-    - libxkbcommon-x11-0
-    - libprotobuf-dev
-    - libglew-dev
-    - protobuf-compiler
-    - autoconf
-    - libtool
-    - ca-certificates
-    - curl
-    - zip
-    - unzip
-    - tar
-    - pkg-config
-    - ccache
-    - bison
-    - linux-headers-{{ ansible_kernel }}
-    - libxi-dev
-    - libgl1-mesa-dev
-    - libegl1-mesa-dev
-    - libglu1-mesa-dev
-    - mesa-common-dev
-    - libxrandr-dev
-    - libxxf86vm-dev
-    - libxft-dev
-    - libxext-dev
-    - libwayland-dev
-    - libxkbcommon-dev
-    - libibus-1.0-dev
-    - libasound2-dev
-    - libxmu-dev
-    - libdbus-1-dev
-    - libxtst-dev
-    - linux-libc-dev
-    - libarchive-dev
+    - cmake
+    - build-essential
     - libwxgtk3.0-gtk3-dev
+    - ninja-build
     - python3-distutils
     - libxrender-dev
-    - ninja-build
-    - build-essential
-    - python3-jinja2
     - libqrencode-dev
     state: present
 
-- name: Clone vcpkg repository
-  git:
-    repo: https://github.com/microsoft/vcpkg
-    dest: ~/vcpkg
-    clone: yes
-
-- name: Run vcpkg bootstrap script
-  command: ~/vcpkg/bootstrap-vcpkg.sh
-  args:
-    chdir: ~/vcpkg
-
-- name: Clone remeres map editor repository
+- name: Clone rme map editor repository
   git:
     repo: "{{ map_editor_url }}"
-    dest: /home/{{ deploy_username }}/tools/source/remeres-map-editor
+    dest: /home/{{ deploy_username }}/tools/source/rme
     clone: yes
     depth: 1
     force: yes
 
-- name: Set permissions for remeres map editor directory
-  file:
-    path: /home/{{ deploy_username }}/tools/source/remeres-map-editor
-    mode: '0777'
-    recurse: yes
-
 - name: Create build directory
   file:
-    path: /home/{{ deploy_username }}/tools/source/remeres-map-editor/build
+    path: /home/{{ deploy_username }}/tools/source/rme/build
     state: directory
     recurse: yes
     mode: '0777'
 
-- name: Set ACLs for remeres map editor directory
-  command: setfacl -R -m g:www-data:rwX /home/{{ deploy_username }}/tools/source/remeres-map-editor
-  args:
-    chdir: ~
-
 - name: Configure the build
-  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/vcpkg/scripts/buildsystems/vcpkg.cmake ..
+  command: cmake ..
   args:
-    chdir: /home/{{ deploy_username }}/tools/source/remeres-map-editor/build
+    chdir: /home/{{ deploy_username }}/tools/source/rme/build
 
-- name: Compile the remeres map editor binary
-  command: cmake --build . -- -j4
+- name: Compile the rme map editor binary
+  command: make -j4
   args:
-    chdir: /home/{{ deploy_username }}/tools/source/remeres-map-editor/build
+    chdir: /home/{{ deploy_username }}/tools/source/rme/build
 
-- name: Create a symlink to the compiled binary in /tools/
+- name: Set permissions for rme map editor directory
   file:
-    src: /home/{{ deploy_username }}/tools/source/remeres-map-editor/remeres
-    dest: /home/{{ deploy_username }}/tools/remeres
+    path: /home/{{ deploy_username }}/tools/source/rme
+    mode: '0777'
+    recurse: yes
+
+- name: Set permissions for deploy_user on the rme build directory
+  file:
+    path: /home/{{ deploy_username }}/tools/source/rme/build
+    mode: '0777'
+    recurse: yes
+
+- name: Create a shortcut to the rme executable
+  file:
+    src: /home/{{ deploy_username }}/tools/source/rme/build/rme
+    dest: /home/{{ deploy_username }}/tools/rme
     state: link
 
-- name: Set final permissions for remeres map editor directory
+- name: Set permissions for deploy_user to use the new shortcut
   file:
-    path: /home/{{ deploy_username }}/tools/source
-    state: directory
-    recurse: yes
+    path: /home/{{ deploy_username }}/tools/rme
     mode: '0777'
