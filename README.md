@@ -38,7 +38,7 @@ A **zero‑to‑hero** guide for absolute beginners. By the end you will have:
 | Git for Windows                         | <https://github.com/git-for-windows/git/releases/latest>                                                              |
 | VMware Workstation **Player** 17 (Free) | <https://customerconnect.vmware.com/en/downloads/info/slug/desktop_end_user_computing/vmware_workstation_player/17_0> |
 | Ubuntu 24.04 LTS ISO                    | <https://releases.ubuntu.com/24.04/>                                                                                  |
-| Python 3.12 (Microsoft Store)           | <https://apps.microsoft.com/detail/9NCVDN91XZQP?hl=en-us&gl=AU&ocid=pdpshare>                                         |
+| Docker Desktop                          | <https://www.docker.com/products/docker-desktop/>                                                                     |
 
 ---
 
@@ -92,15 +92,7 @@ git --version
 ssh -V
 ```
 
-### 2 . Install Python 3.12
-
-Microsoft Store → search **Python 3.12** → _Get_. Validate:
-
-```powershell
-python --version   # Python 3.12.x
-```
-
-### 3 . Install the Justfile runner
+### 2 . Install the Justfile runner
 
 [Justfile](https://github.com/casey/just) will be used to shortcut all future commands.
 
