@@ -1,0 +1,72 @@
+- name: Update package list and upgrade all packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    autoremove: yes
+    autoclean: yes
+
+- name: Install necessary packages
+  apt:
+    name:
+      - acl
+      - git
+      - libxcb-xinerama0
+      - libxcb-util1
+      - libx11-dev
+      - libxkbcommon-x11-0
+      - libprotobuf-dev
+      - libglew-dev
+      - protobuf-compiler
+    state: present
+
+- name: Clone vcpkg repository
+  git:
+    repo: https://github.com/microsoft/vcpkg
+    dest: ~/repos/vcpkg
+    clone: yes
+
+- name: Run vcpkg bootstrap script
+  command: ~/repos/vcpkg/bootstrap-vcpkg.sh
+  args:
+    chdir: ~/repos/vcpkg
+
+- name: Create build directory
+  file:
+    path: /home/{{ ansible_user }}/repos/otclient/build
+    state: directory
+    recurse: yes
+
+- name: Set ACLs for otlcient directory
+  command: setfacl -R -m g:www-data:rx /home/{{ ansible_user }}/repos/otclient
+  args:
+    chdir: ~
+
+- name: Configure the build
+  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/repos/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
+  args:
+    chdir: /home/{{ ansible_user }}/repos/otclient/build
+
+- name: Compile the client binary
+  command: cmake --build linux-release -- -j4
+  args:
+    chdir: /home/{{ ansible_user }}/repos/otclient/build
+
+- name: Set binary as executable
+  command: chmod +x /home/{{ ansible_user }}/repos/otclient/otclient
+
+- name: Set permissions for otlcient directory
+  file:
+    path: /home/{{ ansible_user }}/repos/otclient
+    mode: "0777"
+    recurse: yes
+
+- name: Remove existing 'things' directory if it exists
+  file:
+    path: /home/{{ ansible_user }}/repos/otclient/data/things
+    state: absent
+
+- name: Create symlink for 'things' directory
+  file:
+    src: /home/{{ ansible_user }}/repos/assets/things
+    dest: /home/{{ ansible_user }}/repos/otclient/data/things
+    state: link

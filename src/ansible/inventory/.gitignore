@@ -1,0 +1,6 @@
+*
+!.gitignore
+!README.md
+!hosts.example.yml
+!group_vars/
+!group_vars/all.yml

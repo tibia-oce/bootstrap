@@ -1,0 +1,61 @@
+- name: Install necessary packages
+  apt:
+    name:
+      - acl
+      - git
+      - cmake
+      - build-essential
+      - libwxgtk3.0-gtk3-dev
+      - ninja-build
+      - python3-distutils
+      - libxrender-dev
+      - libqrencode-dev
+    state: present
+
+- name: Clone rme map editor repository
+  git:
+    repo: "{{ map_editor_url }}"
+    dest: /home/{{ ansible_user }}/tools/source/rme
+    clone: yes
+    depth: 1
+    force: yes
+
+- name: Create build directory
+  file:
+    path: /home/{{ ansible_user }}/tools/source/rme/build
+    state: directory
+    recurse: yes
+    mode: "0777"
+
+- name: Configure the build
+  command: cmake ..
+  args:
+    chdir: /home/{{ ansible_user }}/tools/source/rme/build
+
+- name: Compile the rme map editor binary
+  command: make -j4
+  args:
+    chdir: /home/{{ ansible_user }}/tools/source/rme/build
+
+- name: Set permissions for rme map editor directory
+  file:
+    path: /home/{{ ansible_user }}/tools/source/rme
+    mode: "0777"
+    recurse: yes
+
+- name: Set permissions for deploy_user on the rme build directory
+  file:
+    path: /home/{{ ansible_user }}/tools/source/rme/build
+    mode: "0777"
+    recurse: yes
+
+- name: Create a shortcut to the rme executable
+  file:
+    src: /home/{{ ansible_user }}/tools/source/rme/build/rme
+    dest: /home/{{ ansible_user }}/tools/rme
+    state: link
+
+- name: Set permissions for deploy_user to use the new shortcut
+  file:
+    path: /home/{{ ansible_user }}/tools/rme
+    mode: "0777"

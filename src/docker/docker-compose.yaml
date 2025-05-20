@@ -1,0 +1,21 @@
+services:
+  ansible:
+    container_name: ansible
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - ../ansible:/ansible
+      - ~/.ssh/github:/tmp/github:ro
+      - ~/.ssh/known_hosts:/root/.ssh/known_hosts:ro
+      - ~/.gitconfig:/config/gitconfig:ro
+    working_dir: /ansible
+    entrypoint: >
+      sh -c '
+        cp /tmp/github /root/.ssh/vm_key &&
+        chmod 600 /root/.ssh/vm_key &&
+        export ANSIBLE_PRIVATE_KEY_FILE=/root/.ssh/vm_key &&
+        exec "$$@"
+      ' --
+    environment:
+      ANSIBLE_CONFIG: /ansible/ansible.cfg
