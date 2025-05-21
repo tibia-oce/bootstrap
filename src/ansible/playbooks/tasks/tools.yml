@@ -11,14 +11,61 @@
       - git
     state: present
 
-- name: Ensure the repos directory exists
+- name: Ensure the tools directory exists
   file:
     path: "/home/{{ ansible_user }}/tools"
     state: directory
     mode: "0755"
 
-- name: Set permissions for repos directory
+- name: Set permissions for tools directory
   file:
     path: "/home/{{ ansible_user }}/tools"
     mode: "0777"
     recurse: no
+
+- name: Ensure correct permissions for tools directory
+  file:
+    path: "/home/{{ ansible_user }}/tools"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+    recurse: yes
+
+- name: Ensure user has execute permissions on all directories
+  shell: find /home/{{ ansible_user }}/tools -type d -exec chmod 755 {} \;
+  changed_when: true
+
+- name: Ensure user has write permissions on all files
+  shell: find /home/{{ ansible_user }}/tools -type f -exec chmod 644 {} \;
+  changed_when: true
+
+- name: Ensure Desktop directory exists
+  become: true
+  become_user: "{{ ansible_user }}"
+  file:
+    path: "/home/{{ ansible_user }}/Desktop"
+    state: directory
+    mode: "0755"
+
+- name: Create tools desktop shortcut
+  become: true
+  become_user: "{{ ansible_user }}"
+  copy:
+    content: |
+      [Desktop Entry]
+      Type=Application
+      Name=tools
+      Exec=nautilus /home/{{ ansible_user }}/tools
+      Icon=system-file-manager
+      Terminal=false
+      Categories=Development;
+      StartupNotify=true
+    dest: "/home/{{ ansible_user }}/Desktop/tools.desktop"
+    mode: "0755"
+
+- name: Mark tools shortcut as trusted
+  become: true
+  become_user: "{{ ansible_user }}"
+  shell: gio set ~/Desktop/tools.desktop metadata::trusted true
+  changed_when: true
