@@ -48,19 +48,19 @@
 
 - name: Ensure the repos directory exists
   file:
-    path: "/home/{{ ansible_user }}/repos"
+    path: "/home/{{ ansible_user }}/repositories"
     state: directory
     mode: "0777"
 
 - name: Set permissions for repos directory and all subdirectories
   file:
-    path: "/home/{{ ansible_user }}/repos"
+    path: "/home/{{ ansible_user }}/repositories"
     mode: "0777"
     recurse: yes
 
 - name: Ensure correct ownership of the repos directory
   file:
-    path: "/home/{{ ansible_user }}/repos"
+    path: "/home/{{ ansible_user }}/repositories"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     recurse: yes
@@ -68,52 +68,52 @@
 - name: Clone website repository
   git:
     repo: "{{ website_url }}"
-    dest: "/home/{{ ansible_user }}/repos/website"
+    dest: "/home/{{ ansible_user }}/repositories/website"
     force: yes
 
 - name: Clone launcher repository
   git:
     repo: "{{ launcher_url }}"
-    dest: "/home/{{ ansible_user }}/repos/launcher"
+    dest: "/home/{{ ansible_user }}/repositories/launcher"
     force: yes
 
 - name: Clone otclient repository
   git:
     repo: "{{ otclient_url }}"
-    dest: "/home/{{ ansible_user }}/repos/otclient"
+    dest: "/home/{{ ansible_user }}/repositories/otclient"
     force: yes
 
 - name: Clone server repository
   git:
     repo: "{{ server_url }}"
-    dest: "/home/{{ ansible_user }}/repos/server"
+    dest: "/home/{{ ansible_user }}/repositories/server"
     force: yes
 
 - name: Clone assets repository
   git:
     repo: "{{ assets_url }}"
-    dest: "/home/{{ ansible_user }}/repos/assets"
+    dest: "/home/{{ ansible_user }}/repositories/assets"
     force: yes
 
 - name: Initialize Git LFS
   command: git lfs install
   args:
-    chdir: "/home/{{ ansible_user }}/repos/assets"
+    chdir: "/home/{{ ansible_user }}/repositories/assets"
 
 - name: Pull LFS files for assets repository
   command: git lfs pull
   args:
-    chdir: "/home/{{ ansible_user }}/repos/assets"
+    chdir: "/home/{{ ansible_user }}/repositories/assets"
 
 - name: Set permissions for all repository directories
   file:
-    path: "/home/{{ ansible_user }}/repos"
+    path: "/home/{{ ansible_user }}/repositories"
     mode: "0777"
     recurse: yes
 
 - name: Ensure correct ownership of all repository directories
   file:
-    path: "/home/{{ ansible_user }}/repos"
+    path: "/home/{{ ansible_user }}/repositories"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     recurse: yes
@@ -121,7 +121,7 @@
 - name: Set Git to ignore permission changes
   command: git config core.fileMode false
   args:
-    chdir: "/home/{{ ansible_user }}/repos/{{ item }}"
+    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
   with_items:
     - website
     - launcher
@@ -132,7 +132,7 @@
 - name: Set Git to avoid line ending conversions
   command: git config core.autocrlf input
   args:
-    chdir: "/home/{{ ansible_user }}/repos/{{ item }}"
+    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
   with_items:
     - website
     - launcher
@@ -143,7 +143,7 @@
 - name: Reset any changes in the repositories
   command: git reset --hard HEAD
   args:
-    chdir: "/home/{{ ansible_user }}/repos/{{ item }}"
+    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
   with_items:
     - website
     - launcher
@@ -174,26 +174,11 @@
 
 - name: Ensure repos tree is writable by {{ ansible_user }}
   file:
-    path: "/home/{{ ansible_user }}/repos"
+    path: "/home/{{ ansible_user }}/repositories"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: "0775"
     recurse: yes
-
-- name: Reset executable bits and ignore permissions in Git
-  shell: |
-    git config --local core.fileMode false &&
-    git config --local core.autocrlf input
-  args:
-    chdir: "/home/{{ ansible_user }}/repos/{{ item }}"
-  loop:
-    - website
-    - launcher
-    - otclient
-    - server
-    - assets
-  become: true
-  become_user: "{{ ansible_user }}"
 
 - name: Set core.sshCommand to use the GitHub key (global)
   git_config:
@@ -203,3 +188,50 @@
     state: present
   become: true
   become_user: "{{ ansible_user }}"
+
+- name: Ensure correct permissions for repositories directory
+  file:
+    path: "/home/{{ ansible_user }}/repositories"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+    recurse: yes
+
+- name: Ensure user has execute permissions on all directories
+  shell: find /home/{{ ansible_user }}/repositories -type d -exec chmod 755 {} \;
+  changed_when: true
+
+- name: Ensure user has write permissions on all files
+  shell: find /home/{{ ansible_user }}/repositories -type f -exec chmod 644 {} \;
+  changed_when: true
+
+- name: Ensure Desktop directory exists
+  become: true
+  become_user: "{{ ansible_user }}"
+  file:
+    path: "/home/{{ ansible_user }}/Desktop"
+    state: directory
+    mode: "0755"
+
+- name: Create Repositories desktop shortcut
+  become: true
+  become_user: "{{ ansible_user }}"
+  copy:
+    content: |
+      [Desktop Entry]
+      Type=Application
+      Name=Repositories
+      Exec=nautilus /home/{{ ansible_user }}/repositories
+      Icon=system-file-manager
+      Terminal=false
+      Categories=Development;
+      StartupNotify=true
+    dest: "/home/{{ ansible_user }}/Desktop/repositories.desktop"
+    mode: "0755"
+
+- name: Mark Repositories shortcut as trusted
+  become: true
+  become_user: "{{ ansible_user }}"
+  shell: gio set ~/Desktop/repositories.desktop metadata::trusted true
+  changed_when: true

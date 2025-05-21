@@ -22,51 +22,51 @@
 - name: Clone vcpkg repository
   git:
     repo: https://github.com/microsoft/vcpkg
-    dest: ~/repos/vcpkg
+    dest: ~/repositories/vcpkg
     clone: yes
 
 - name: Run vcpkg bootstrap script
-  command: ~/repos/vcpkg/bootstrap-vcpkg.sh
+  command: ~/repositories/vcpkg/bootstrap-vcpkg.sh
   args:
-    chdir: ~/repos/vcpkg
+    chdir: ~/repositories/vcpkg
 
 - name: Create build directory
   file:
-    path: /home/{{ ansible_user }}/repos/otclient/build
+    path: /home/{{ ansible_user }}/repositories/otclient/build
     state: directory
     recurse: yes
 
 - name: Set ACLs for otlcient directory
-  command: setfacl -R -m g:www-data:rx /home/{{ ansible_user }}/repos/otclient
+  command: setfacl -R -m g:www-data:rx /home/{{ ansible_user }}/repositories/otclient
   args:
     chdir: ~
 
 - name: Configure the build
-  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/repos/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
+  command: cmake -DCMAKE_TOOLCHAIN_FILE=~/repositories/vcpkg/scripts/buildsystems/vcpkg.cmake .. --preset linux-release
   args:
-    chdir: /home/{{ ansible_user }}/repos/otclient/build
+    chdir: /home/{{ ansible_user }}/repositories/otclient/build
 
 - name: Compile the client binary
   command: cmake --build linux-release -- -j4
   args:
-    chdir: /home/{{ ansible_user }}/repos/otclient/build
+    chdir: /home/{{ ansible_user }}/repositories/otclient/build
 
 - name: Set binary as executable
-  command: chmod +x /home/{{ ansible_user }}/repos/otclient/otclient
+  command: chmod +x /home/{{ ansible_user }}/repositories/otclient/otclient
 
 - name: Set permissions for otlcient directory
   file:
-    path: /home/{{ ansible_user }}/repos/otclient
+    path: /home/{{ ansible_user }}/repositories/otclient
     mode: "0777"
     recurse: yes
 
 - name: Remove existing 'things' directory if it exists
   file:
-    path: /home/{{ ansible_user }}/repos/otclient/data/things
+    path: /home/{{ ansible_user }}/repositories/otclient/data/things
     state: absent
 
 - name: Create symlink for 'things' directory
   file:
-    src: /home/{{ ansible_user }}/repos/assets/things
-    dest: /home/{{ ansible_user }}/repos/otclient/data/things
+    src: /home/{{ ansible_user }}/repositories/assets/things
+    dest: /home/{{ ansible_user }}/repositories/otclient/data/things
     state: link

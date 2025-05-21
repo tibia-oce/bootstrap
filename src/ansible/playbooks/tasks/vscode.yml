@@ -21,3 +21,79 @@
   apt:
     name: code
     state: present
+
+- name: Create VSCode settings directory
+  file:
+    path: "/home/{{ ansible_user }}/.config/Code/User"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: Deploy VSCode settings.json
+  template:
+    src: templates/vscode/settings.json.j2
+    dest: "/home/{{ ansible_user }}/.config/Code/User/settings.json"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Load VSCode extension list
+  set_fact:
+    vscode_extensions: >-
+      {{ lookup('file', playbook_dir ~ '/templates/vscode/extensions.txt')
+         .splitlines() | reject('match', '^\s*$') | list }}
+
+- name: Abort when extension list is empty
+  fail:
+    msg: "No VSCode extensions found in templates/vscode/extensions.txt"
+  when: vscode_extensions | length == 0
+
+- name: Get list of installed VSCode extensions
+  become: true
+  become_user: "{{ ansible_user }}"
+  shell: code --list-extensions
+  register: installed_extensions
+  changed_when: false
+
+- name: Install missing VSCode extensions
+  become: true
+  become_user: "{{ ansible_user }}"
+  shell: code --install-extension {{ item }}
+  loop: "{{ vscode_extensions }}"
+  when: item not in installed_extensions.stdout_lines
+  register: extension_installation
+  changed_when: extension_installation.rc == 0
+
+- name: Ensure Desktop directory exists
+  become: true
+  become_user: "{{ ansible_user }}"
+  file:
+    path: "/home/{{ ansible_user }}/Desktop"
+    state: directory
+    mode: "0755"
+
+- name: Create VS Code desktop shortcut
+  become: true
+  become_user: "{{ ansible_user }}"
+  copy:
+    content: |
+      [Desktop Entry]
+      Type=Application
+      Name=Visual Studio Code
+      Exec=/usr/bin/code
+      Icon=/usr/share/pixmaps/vscode.png
+      Terminal=false
+      Categories=Development;IDE;
+      StartupWMClass=Code
+      StartupNotify=true
+    dest: "/home/{{ ansible_user }}/Desktop/vscode.desktop"
+    mode: "0755"
+
+- name: Mark VS Code desktop shortcut as trusted
+  become: true
+  become_user: "{{ ansible_user }}"
+  shell: gio set ~/Desktop/vscode.desktop metadata::trusted true
+  changed_when: true

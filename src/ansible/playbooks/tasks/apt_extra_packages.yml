@@ -25,6 +25,7 @@
       - ninja-build
       - ccache
       - linux-headers-{{ ansible_kernel }}
+      - xclip
     state: present
 
 - name: Remove existing cmake package

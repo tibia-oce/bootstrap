@@ -58,3 +58,54 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: "0644"
+
+- name: Copy .p10k.zsh file into home
+  become: true
+  become_user: "{{ ansible_user }}"
+  copy:
+    src: templates/zsh/p10k.zsh.j2
+    dest: "/home/{{ ansible_user }}/.p10k.zsh"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+- name: Install psutil Python package for dconf module
+  become: true
+  apt:
+    name: python3-psutil
+    state: present
+
+- name: Ensure Desktop directory exists
+  become: true
+  become_user: "{{ ansible_user }}"
+  file:
+    path: "/home/{{ ansible_user }}/Desktop"
+    state: directory
+    mode: "0755"
+
+- name: Ensure Desktop directory exists
+  become: true
+  become_user: "{{ ansible_user }}"
+  file:
+    path: "/home/{{ ansible_user }}/Desktop"
+    state: directory
+    mode: "0755"
+
+- name: Create basic Terminal desktop shortcut
+  become: true
+  become_user: "{{ ansible_user }}"
+  copy:
+    content: |
+      [Desktop Entry]
+      Type=Application
+      Name=Terminal
+      Exec=gnome-terminal
+      Icon=utilities-terminal
+      Terminal=false
+    dest: "/home/{{ ansible_user }}/Desktop/terminal.desktop"
+    mode: "0755"
+
+- name: Mark desktop shortcut as trusted
+  become: true
+  become_user: "{{ ansible_user }}"
+  shell: gio set ~/Desktop/terminal.desktop metadata::trusted true
+  changed_when: true
