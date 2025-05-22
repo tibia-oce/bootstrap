@@ -1,0 +1,122 @@
+---
+- name: Set Go version
+  set_fact:
+    go_version: "1.21.6"
+  when: go_version is not defined
+
+- name: Check if Go is already installed
+  command: go version
+  register: go_installed
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Create expected Go version string
+  set_fact:
+    expected_go_version: "go version go{{ go_version }}"
+
+- name: Download Go
+  get_url:
+    url: "https://golang.org/dl/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/go{{ go_version }}.linux-amd64.tar.gz"
+    mode: "0644"
+  when: go_installed.rc != 0 or expected_go_version not in go_installed.stdout
+
+- name: Remove existing Go installation
+  file:
+    path: /usr/local/go
+    state: absent
+  become: true
+  when: go_installed.rc != 0 or expected_go_version not in go_installed.stdout
+
+- name: Extract Go
+  unarchive:
+    src: "/tmp/go{{ go_version }}.linux-amd64.tar.gz"
+    dest: /usr/local
+    remote_src: yes
+  become: true
+  when: go_installed.rc != 0 or expected_go_version not in go_installed.stdout
+
+- name: Ensure Go bin directory exists in user's home
+  file:
+    path: "/home/{{ ansible_user }}/go/bin"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Check if .zshrc contains necessary Go path configuration
+  command: grep -E 'export GOPATH|export GOROOT|export GOBIN' "/home/{{ ansible_user }}/.zshrc"
+  register: zshrc_go_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Update .zshrc with Go path configuration if missing
+  blockinfile:
+    path: "/home/{{ ansible_user }}/.zshrc"
+    marker: "# {mark} GO CONFIGURATION"
+    block: |
+      export GOPATH="$HOME/go"
+      export GOROOT="/usr/local/go"
+      export GOBIN="$GOPATH/bin"
+      export PATH="$PATH:$GOPATH:$GOROOT/bin"
+  when: zshrc_go_check.rc != 0
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Check if common Go tools are already installed
+  stat:
+    path: "/home/{{ ansible_user }}/go/bin/{{ item }}"
+  register: go_tools_check
+  with_items:
+    - gopls
+    - dlv
+    - staticcheck
+    - golangci-lint
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Install common Go tools
+  shell: |
+    export PATH=$PATH:/usr/local/go/bin
+    export GOPATH=$HOME/go
+    export GOBIN=$GOPATH/bin
+    go install golang.org/x/tools/gopls@latest
+    go install github.com/go-delve/delve/cmd/dlv@latest
+    go install honnef.co/go/tools/cmd/staticcheck@latest
+    go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: go_tools_check.results | map(attribute='stat.exists') | select('equalto', false) | list | length > 0
+  register: go_tools_installation
+
+- name: Verify Go tools installation
+  shell: |
+    for tool in gopls dlv staticcheck golangci-lint; do
+      if [[ ! -f $HOME/go/bin/$tool ]]; then
+        echo "Failed to install $tool"
+        exit 1
+      fi
+    done
+    echo "All Go tools successfully installed"
+  args:
+    executable: /bin/bash
+  register: go_tools_verification
+  changed_when: false
+  failed_when: go_tools_verification.rc != 0
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: go_tools_installation.changed
+
+- name: Clean up Go install archive
+  file:
+    path: "/tmp/go{{ go_version }}.linux-amd64.tar.gz"
+    state: absent
+  when: go_installed.rc != 0 or expected_go_version not in go_installed.stdout

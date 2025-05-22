@@ -69,3 +69,66 @@
   become_user: "{{ ansible_user }}"
   shell: gio set ~/Desktop/tools.desktop metadata::trusted true
   changed_when: true
+
+- name: Clone all tools
+  git:
+    repo: "{{ item.url }}"
+    dest: "/home/{{ ansible_user }}/tools/{{ item.name }}"
+    force: yes
+    accept_hostkey: yes
+  environment:
+    GIT_SSH_COMMAND: "ssh -i ~/.ssh/github -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
+  become: true
+  become_user: "{{ ansible_user }}"
+  loop:
+    - { name: "map-editor", url: "{{ map_editor_url }}" }
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Set permissions for all repository directories
+  file:
+    path: "/home/{{ ansible_user }}/tools"
+    mode: "0777"
+
+- name: Ensure correct ownership of all repository directories
+  file:
+    path: "/home/{{ ansible_user }}/tools"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Set Git to ignore permission changes
+  command: git config core.fileMode false
+  args:
+    chdir: "/home/{{ ansible_user }}/tools/{{ item }}"
+  with_items:
+    - map-editor
+
+- name: Set Git to avoid line ending conversions
+  command: git config core.autocrlf input
+  args:
+    chdir: "/home/{{ ansible_user }}/tools/{{ item }}"
+  with_items:
+    - map-editor
+
+- name: Reset any changes in the tools
+  command: git reset --hard HEAD
+  args:
+    chdir: "/home/{{ ansible_user }}/tools/{{ item }}"
+  with_items:
+    - map-editor
+
+- name: Ensure correct permissions for tools directory
+  file:
+    path: "/home/{{ ansible_user }}/tools"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: Ensure user has execute permissions on all directories
+  shell: find /home/{{ ansible_user }}/tools -type d -exec chmod 755 {} \;
+  changed_when: true
+
+- name: Ensure user has write permissions on all files
+  shell: find /home/{{ ansible_user }}/tools -type f -exec chmod 644 {} \;
+  changed_when: true

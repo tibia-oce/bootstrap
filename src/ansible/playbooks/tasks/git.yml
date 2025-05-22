@@ -56,100 +56,12 @@
   file:
     path: "/home/{{ ansible_user }}/repositories"
     mode: "0777"
-    recurse: yes
 
 - name: Ensure correct ownership of the repos directory
   file:
     path: "/home/{{ ansible_user }}/repositories"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-    recurse: yes
-
-- name: Clone website repository
-  git:
-    repo: "{{ website_url }}"
-    dest: "/home/{{ ansible_user }}/repositories/website"
-    force: yes
-
-- name: Clone launcher repository
-  git:
-    repo: "{{ launcher_url }}"
-    dest: "/home/{{ ansible_user }}/repositories/launcher"
-    force: yes
-
-- name: Clone otclient repository
-  git:
-    repo: "{{ otclient_url }}"
-    dest: "/home/{{ ansible_user }}/repositories/otclient"
-    force: yes
-
-- name: Clone server repository
-  git:
-    repo: "{{ server_url }}"
-    dest: "/home/{{ ansible_user }}/repositories/server"
-    force: yes
-
-- name: Clone assets repository
-  git:
-    repo: "{{ assets_url }}"
-    dest: "/home/{{ ansible_user }}/repositories/assets"
-    force: yes
-
-- name: Initialize Git LFS
-  command: git lfs install
-  args:
-    chdir: "/home/{{ ansible_user }}/repositories/assets"
-
-- name: Pull LFS files for assets repository
-  command: git lfs pull
-  args:
-    chdir: "/home/{{ ansible_user }}/repositories/assets"
-
-- name: Set permissions for all repository directories
-  file:
-    path: "/home/{{ ansible_user }}/repositories"
-    mode: "0777"
-    recurse: yes
-
-- name: Ensure correct ownership of all repository directories
-  file:
-    path: "/home/{{ ansible_user }}/repositories"
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    recurse: yes
-
-- name: Set Git to ignore permission changes
-  command: git config core.fileMode false
-  args:
-    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
-  with_items:
-    - website
-    - launcher
-    - otclient
-    - server
-    - assets
-
-- name: Set Git to avoid line ending conversions
-  command: git config core.autocrlf input
-  args:
-    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
-  with_items:
-    - website
-    - launcher
-    - otclient
-    - server
-    - assets
-
-- name: Reset any changes in the repositories
-  command: git reset --hard HEAD
-  args:
-    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
-  with_items:
-    - website
-    - launcher
-    - otclient
-    - server
-    - assets
 
 - name: Ensure ~/.netrc exists (0600)
   file:
@@ -178,7 +90,6 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: "0775"
-    recurse: yes
 
 - name: Set core.sshCommand to use the GitHub key (global)
   git_config:
@@ -189,6 +100,153 @@
   become: true
   become_user: "{{ ansible_user }}"
 
+- name: Ensure SSH directory exists
+  file:
+    path: "/home/{{ ansible_user }}/.ssh"
+    state: directory
+    mode: "0700"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: true
+
+- name: Configure SSH to use github key for github.com
+  blockinfile:
+    path: "/home/{{ ansible_user }}/.ssh/config"
+    create: yes
+    mode: "0600"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR GITHUB"
+    block: |
+      Host github.com
+        HostName github.com
+        User git
+        IdentityFile ~/.ssh/github
+        IdentitiesOnly yes
+        StrictHostKeyChecking no
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Copy github SSH key from controller to VM (if needed)
+  copy:
+    src: "{{ item }}"
+    dest: "/home/{{ ansible_user }}/.ssh/{{ item | basename }}"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "{{ '0600' if 'pub' not in item else '0644' }}"
+  with_fileglob:
+    - "~/.ssh/github*"
+  become: true
+  ignore_errors: true
+
+- name: Ensure proper permissions on SSH key
+  file:
+    path: "/home/{{ ansible_user }}/.ssh/github"
+    mode: "0600"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: true
+
+- name: Remove any existing GitHub entries from known_hosts
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.ssh/known_hosts"
+    regexp: '^github\.com'
+    state: absent
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Add GitHub to known_hosts
+  shell: |
+    ssh-keyscan -t rsa,ed25519 github.com >> ~/.ssh/known_hosts
+  become: true
+  become_user: "{{ ansible_user }}"
+  changed_when: true
+
+- name: Ensure proper permissions on known_hosts
+  file:
+    path: "/home/{{ ansible_user }}/.ssh/known_hosts"
+    mode: "0644"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+  become: true
+
+- name: Clone all repositories
+  git:
+    repo: "{{ item.url }}"
+    dest: "/home/{{ ansible_user }}/repositories/{{ item.name }}"
+    force: yes
+    accept_hostkey: yes
+  environment:
+    GIT_SSH_COMMAND: "ssh -i ~/.ssh/github -o IdentitiesOnly=yes -o StrictHostKeyChecking=no"
+  become: true
+  become_user: "{{ ansible_user }}"
+  loop:
+    - { name: "infrastructure", url: "{{ infrastructure_url }}" }
+    - { name: "launcher", url: "{{ launcher_url }}" }
+    - { name: "website", url: "{{ website_url }}" }
+    - { name: "client", url: "{{ client_url }}" }
+    - { name: "server", url: "{{ server_url }}" }
+    - { name: "wiki", url: "{{ wiki_url }}" }
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Set permissions for all repository directories
+  file:
+    path: "/home/{{ ansible_user }}/repositories"
+    mode: "0777"
+
+- name: Ensure correct ownership of all repository directories
+  file:
+    path: "/home/{{ ansible_user }}/repositories"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Set Git to ignore permission changes
+  command: git config core.fileMode false
+  args:
+    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
+  with_items:
+    - website
+    - launcher
+    - client
+    - server
+    - wiki
+    - infrastructure
+
+- name: Set Git to avoid line ending conversions
+  command: git config core.autocrlf input
+  args:
+    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
+  with_items:
+    - website
+    - launcher
+    - client
+    - server
+    - wiki
+    - infrastructure
+
+- name: Reset any changes in the repositories
+  command: git reset --hard HEAD
+  args:
+    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
+  with_items:
+    - website
+    - launcher
+    - client
+    - server
+    - wiki
+    - infrastructure
+
+# - name: Initialize Git LFS
+#   command: git lfs install
+#   args:
+#     chdir: "/home/{{ ansible_user }}/repositories/assets"
+
+# - name: Pull LFS files for assets repository
+#   command: git lfs pull
+#   args:
+#     chdir: "/home/{{ ansible_user }}/repositories/assets"
+
 - name: Ensure correct permissions for repositories directory
   file:
     path: "/home/{{ ansible_user }}/repositories"
@@ -196,7 +254,6 @@
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: "0755"
-    recurse: yes
 
 - name: Ensure user has execute permissions on all directories
   shell: find /home/{{ ansible_user }}/repositories -type d -exec chmod 755 {} \;

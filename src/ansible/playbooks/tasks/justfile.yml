@@ -1,0 +1,39 @@
+---
+- name: Check if just is installed
+  command: which just
+  register: just_installed
+  changed_when: false
+  failed_when: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Download and install just
+  shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to ~/.local/bin
+  args:
+    creates: "/home/{{ ansible_user }}/.local/bin/just"
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: just_installed.rc != 0
+
+- name: Ensure ~/.local/bin is in PATH
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    state: present
+    create: yes
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: just_installed.rc != 0
+
+- name: Verify just installation
+  shell: |
+    export PATH="$HOME/.local/bin:$PATH"
+    just --version
+  args:
+    executable: /bin/bash
+  register: just_version
+  changed_when: false
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: just_installed.rc != 0

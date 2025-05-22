@@ -41,6 +41,18 @@
     - name: Include docker tasks
       ansible.builtin.import_tasks: ./tasks/docker.yml
 
+    - name: Include go tasks
+      ansible.builtin.import_tasks: ./tasks/go.yml
+
+    - name: Include python tasks
+      ansible.builtin.import_tasks: ./tasks/python.yml
+
+    - name: Include node tasks
+      ansible.builtin.import_tasks: ./tasks/node.yml
+
+    - name: Include justfile tasks
+      ansible.builtin.import_tasks: ./tasks/justfile.yml
+
     - name: Include oh-my-zsh tasks
       ansible.builtin.import_tasks: ./tasks/zsh.yml
 

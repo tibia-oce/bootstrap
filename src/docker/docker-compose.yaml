@@ -12,9 +12,9 @@ services:
     working_dir: /ansible
     entrypoint: >
       sh -c '
-        cp /tmp/github /root/.ssh/vm_key &&
-        chmod 600 /root/.ssh/vm_key &&
-        export ANSIBLE_PRIVATE_KEY_FILE=/root/.ssh/vm_key &&
+        cp /tmp/github /root/.ssh/github &&
+        chmod 600 /root/.ssh/github &&
+        export ANSIBLE_PRIVATE_KEY_FILE=/root/.ssh/github &&
         exec "$$@"
       ' --
     environment:

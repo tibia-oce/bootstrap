@@ -1,9 +1,8 @@
 ansible_ssh_port: 22
-client_repo_url: "https://github.com/tibia-oce/otclient"
-assets_repo_url: "https://github.com/tibia-oce/assets.git"
-map_editor_url: "https://github.com/tibia-oce/rme.git"
-website_url: https://github.com/tibia-oce/website.git
-launcher_url: https://github.com/tibia-oce/launcher.git
-otclient_url: https://github.com/tibia-oce/otclient.git
-server_url: https://github.com/tibia-oce/server.git
-assets_url: https://github.com/tibia-oce/assets.git
+wiki_url: git@github.com:tibia-oce/tibia-oce.github.io.git
+client_url: git@github.com:tibia-oce/mythbound-client.git
+server_url: git@github.com:tibia-oce/mythbound-server.git
+website_url: git@github.com:tibia-oce/mythbound-website.git
+launcher_url: git@github.com:tibia-oce/mythbound-launcher.git
+infrastructure_url: "git@github.com:tibia-oce/ovh-cloud.git"
+map_editor_url: "git@github.com:tibia-oce/map-editor.git"

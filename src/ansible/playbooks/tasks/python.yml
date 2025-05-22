@@ -1,0 +1,184 @@
+---
+- name: Install dependencies for building Python
+  apt:
+    name:
+      - make
+      - build-essential
+      - libssl-dev
+      - zlib1g-dev
+      - libbz2-dev
+      - libreadline-dev
+      - libsqlite3-dev
+      - wget
+      - curl
+      - llvm
+      - libncurses5-dev
+      - xz-utils
+      - tk-dev
+      - libxml2-dev
+      - libxmlsec1-dev
+      - libffi-dev
+      - liblzma-dev
+    state: present
+    update_cache: yes
+
+- name: Check if pyenv is installed
+  stat:
+    path: "/home/{{ ansible_user }}/.pyenv"
+  register: pyenv_installed
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Install pyenv
+  shell: |
+    curl https://pyenv.run | bash
+  args:
+    creates: "/home/{{ ansible_user }}/.pyenv"
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: not pyenv_installed.stat.exists
+
+- name: Check if python 3.11 is installed
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+    pyenv versions | grep "3.11"
+  args:
+    executable: /bin/bash
+  register: python_311_installed
+  changed_when: false
+  failed_when: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Install Python 3.11 via pyenv
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+    pyenv install 3.11.8
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: python_311_installed.rc != 0 or "3.11" not in python_311_installed.stdout
+  register: python_install_result
+
+- name: Set Python 3.11 as global
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+    pyenv global 3.11.8
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: python_install_result.changed
+
+- name: Check if Poetry is installed
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+    command -v poetry
+  args:
+    executable: /bin/bash
+  register: poetry_installed
+  changed_when: false
+  failed_when: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Install Poetry
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+    curl -sSL https://install.python-poetry.org | python3 -
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: poetry_installed.rc != 0
+
+- name: Check if .zshrc contains pyenv configuration
+  command: grep -E 'pyenv|PYENV_ROOT' "/home/{{ ansible_user }}/.zshrc"
+  register: zshrc_pyenv_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Check if .zshrc contains poetry configuration
+  command: grep -E 'poetry' "/home/{{ ansible_user }}/.zshrc"
+  register: zshrc_poetry_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Update .zshrc with pyenv configuration if missing
+  blockinfile:
+    path: "/home/{{ ansible_user }}/.zshrc"
+    marker: "# {mark} PYENV CONFIGURATION"
+    block: |
+      export PYENV_ROOT="$HOME/.pyenv"
+      export PATH="$PYENV_ROOT/bin:$PATH"
+      eval "$(pyenv init --path)"
+      if command -v pyenv 1>/dev/null 2>&1; then
+        eval "$(pyenv init -)"
+        eval "$(pyenv virtualenv-init -)"
+      fi
+  when: zshrc_pyenv_check.rc != 0
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Update .zshrc with poetry configuration if missing
+  blockinfile:
+    path: "/home/{{ ansible_user }}/.zshrc"
+    marker: "# {mark} POETRY CONFIGURATION"
+    block: |
+      export PATH="$HOME/.local/bin:$PATH"
+      # Add Poetry to PATH
+      if [ -d "$HOME/.poetry/bin" ]; then
+        export PATH="$HOME/.poetry/bin:$PATH"
+      fi
+  when: zshrc_poetry_check.rc != 0
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Verify installation
+  shell: |
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    export PATH="$HOME/.local/bin:$PATH"
+    if [ -d "$HOME/.poetry/bin" ]; then
+      export PATH="$HOME/.poetry/bin:$PATH"
+    fi
+    eval "$(pyenv init --path)"
+    eval "$(pyenv init -)"
+
+    echo "Checking pyenv version:"
+    pyenv --version
+
+    echo "Checking Python version:"
+    python --version
+
+    echo "Checking Poetry version:"
+    poetry --version
+  args:
+    executable: /bin/bash
+  register: verification_result
+  changed_when: false
+  failed_when: verification_result.rc != 0
+  become: true
+  become_user: "{{ ansible_user }}"

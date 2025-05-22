@@ -1,0 +1,185 @@
+---
+- name: Install prerequisites for NVM
+  apt:
+    name:
+      - curl
+      - wget
+      - git
+      - build-essential
+      - ca-certificates
+    state: present
+    update_cache: yes
+
+- name: Check if NVM is installed
+  stat:
+    path: "/home/{{ ansible_user }}/.nvm/nvm.sh"
+  register: nvm_installed
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Set NVM version
+  set_fact:
+    nvm_version: "v0.39.7" # Latest stable version as of now
+  when: nvm_version is not defined
+
+- name: Install NVM
+  shell: >
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh | bash
+  args:
+    creates: "/home/{{ ansible_user }}/.nvm/nvm.sh"
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: not nvm_installed.stat.exists
+
+- name: Set Node.js LTS version
+  set_fact:
+    node_version: "lts/iron" # Node.js LTS (iron = v20)
+  when: node_version is not defined
+
+- name: Check if .zshrc contains NVM configuration
+  command: grep -E 'nvm.sh|nvm_dir' "/home/{{ ansible_user }}/.zshrc"
+  register: zshrc_nvm_check
+  changed_when: false
+  failed_when: false
+  check_mode: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Update .zshrc with NVM configuration if missing
+  blockinfile:
+    path: "/home/{{ ansible_user }}/.zshrc"
+    marker: "# {mark} NVM CONFIGURATION"
+    block: |
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+  when: zshrc_nvm_check.rc != 0
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Check if Node.js is installed
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm ls | grep -E "{{ node_version }}"
+  args:
+    executable: /bin/bash
+  register: node_installed
+  changed_when: false
+  failed_when: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Install Node.js
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install {{ node_version }}
+    nvm alias default {{ node_version }}
+    nvm use default
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: node_installed.rc != 0 or node_version not in node_installed.stdout
+
+- name: Check if global Node packages are installed
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    npm list -g --depth=0 | grep -E "{{ item }}"
+  args:
+    executable: /bin/bash
+  register: npm_packages_installed
+  changed_when: false
+  failed_when: false
+  with_items:
+    - yarn
+    - pnpm
+    - typescript
+    - ts-node
+    - pm2
+    - eslint
+    - prettier
+    - http-server
+    - nodemon
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Install essential global Node packages
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    npm install -g {{ item.item }}
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: item.rc != 0
+  with_items: "{{ npm_packages_installed.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Install Yarn package manager
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    npm install -g yarn
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: npm_packages_installed.results[0].rc != 0
+
+- name: Install PNPM package manager
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    npm install -g pnpm
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ ansible_user }}"
+  when: npm_packages_installed.results[1].rc != 0
+
+- name: Add global node_modules to PATH if not already
+  lineinfile:
+    path: "/home/{{ ansible_user }}/.zshrc"
+    line: 'export PATH="$PATH:$HOME/.nvm/versions/node/$(node -v)/bin"'
+    regexp: '\.nvm/versions/node/\$\(node -v\)/bin'
+    state: present
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Verify Node.js installation
+  shell: |
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+    echo "Node.js version:"
+    node --version
+
+    echo "npm version:"
+    npm --version
+
+    echo "npx version:"
+    npx --version
+
+    echo "Yarn version:"
+    yarn --version
+
+    echo "pnpm version:"
+    pnpm --version
+
+    echo "Global NPM packages:"
+    npm list -g --depth=0
+  args:
+    executable: /bin/bash
+  register: node_verification
+  changed_when: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Display Node.js verification results
+  debug:
+    msg: "{{ node_verification.stdout_lines }}"
