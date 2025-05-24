@@ -121,6 +121,6 @@ Add the public key to GitHub: **Settings → SSH and GPG keys → New SSH key**
 | Symptom                                                     | Fix                                                                                           |
 | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `ssh : connect to host … port 22: Connection timed out`     | Check VM network mode and ensure `sshd` is running.                                           |
-| `Permission denied (publickey)`                             | Re‑copy key, verify correct `-i` path and `authorized_keys` permissions.                      |
+| `Permission denied (publickey)`                             | Re‑copy key, verify hosts with `just setup`.                                                  |
 | VMware “out of memory” warnings                             | Assign 10 GB instead of 12 GB RAM or close other apps.                                        |
 | AttributeError: module 'os' has no attribute 'get_blocking' | Ensure python 3.12 is installed and previous versions aren't running the ansible environment. |

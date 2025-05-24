@@ -41,6 +41,9 @@
     - name: Include docker tasks
       ansible.builtin.import_tasks: ./tasks/docker.yml
 
+    - name: Include oh-my-zsh tasks
+      ansible.builtin.import_tasks: ./tasks/zsh.yml
+
     - name: Include go tasks
       ansible.builtin.import_tasks: ./tasks/go.yml
 
@@ -52,9 +55,6 @@
 
     - name: Include justfile tasks
       ansible.builtin.import_tasks: ./tasks/justfile.yml
-
-    - name: Include oh-my-zsh tasks
-      ansible.builtin.import_tasks: ./tasks/zsh.yml
 
   handlers:
     - name: restart ssh

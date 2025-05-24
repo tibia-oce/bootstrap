@@ -26,11 +26,22 @@
     group: "{{ ansible_user }}"
     mode: "0644"
 
+- name: Check for ~/.gitconfig
+  stat:
+    path: "/home/{{ ansible_user }}/.gitconfig"
+  register: gitconfig_stat
+
+- name: Ensure ~/.gitconfig has correct owner/mode
+  file:
+    path: "/home/{{ ansible_user }}/.gitconfig"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  when: gitconfig_stat.stat.exists
+
 - name: Update package list and upgrade all packages
   apt:
     update_cache: yes
-    upgrade: dist
-    autoremove: yes
     autoclean: yes
 
 - name: Install necessary packages
@@ -40,11 +51,24 @@
       - git-lfs
     state: present
 
+- name: Ensure ~/.netrc exists (0600)
+  file:
+    path: "/home/{{ ansible_user }}/.netrc"
+    state: touch
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+
 - name: Ensure .netrc file exists with correct permissions
   file:
     path: ~/.netrc
     state: touch
     mode: "0600"
+
+- name: Initialise Git LFS (sets up your Git hooks globally)
+  command: git lfs install --skip-repo
+  args:
+    creates: /etc/gitconfig
 
 - name: Ensure the repos directory exists
   file:
@@ -62,27 +86,6 @@
     path: "/home/{{ ansible_user }}/repositories"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
-
-- name: Ensure ~/.netrc exists (0600)
-  file:
-    path: "/home/{{ ansible_user }}/.netrc"
-    state: touch
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: "0600"
-
-- name: Check for ~/.gitconfig
-  stat:
-    path: "/home/{{ ansible_user }}/.gitconfig"
-  register: gitconfig_stat
-
-- name: Ensure ~/.gitconfig has correct owner/mode
-  file:
-    path: "/home/{{ ansible_user }}/.gitconfig"
-    owner: "{{ ansible_user }}"
-    group: "{{ ansible_user }}"
-    mode: "0644"
-  when: gitconfig_stat.stat.exists
 
 - name: Ensure repos tree is writable by {{ ansible_user }}
   file:
@@ -237,15 +240,15 @@
     - wiki
     - infrastructure
 
-# - name: Initialize Git LFS
-#   command: git lfs install
-#   args:
-#     chdir: "/home/{{ ansible_user }}/repositories/assets"
-
-# - name: Pull LFS files for assets repository
-#   command: git lfs pull
-#   args:
-#     chdir: "/home/{{ ansible_user }}/repositories/assets"
+- name: Pull Git LFS objects
+  command: git lfs pull
+  args:
+    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
+  with_items:
+    - client
+    - server
+  become: true
+  become_user: "{{ ansible_user }}"
 
 - name: Ensure correct permissions for repositories directory
   file:

@@ -1,8 +1,6 @@
 - name: Update package list and upgrade all packages
   apt:
     update_cache: yes
-    upgrade: dist
-    autoremove: yes
     autoclean: yes
 
 - name: Install essential packages
@@ -39,6 +37,8 @@
       - libglu1-mesa-dev
       - freeglut3-dev
       - mesa-common-dev
+      - libfuse2
+      - fuse
     state: present
 
 - name: Remove existing cmake package
@@ -70,3 +70,13 @@
 
 - name: Set gcc-12 as default compiler
   command: update-alternatives --set gcc /usr/bin/gcc-12
+
+- name: Ensure Ubuntu desktop is installed
+  apt:
+    name:
+      - ubuntu-desktop
+      - gnome-shell
+      - open-vm-tools
+      - open-vm-tools-desktop
+    state: present
+    update_cache: yes
