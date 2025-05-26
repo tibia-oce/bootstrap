@@ -39,6 +39,11 @@
       - mesa-common-dev
       - libfuse2
       - fuse
+      # todo(libs): test stable
+      # - liblua5.4-dev
+      # - libcrypto++-dev
+      # - libboost-filesystem-dev
+      # - libboost-system-dev
     state: present
 
 - name: Remove existing cmake package
