@@ -185,11 +185,14 @@
   become_user: "{{ ansible_user }}"
   loop:
     - { name: "infrastructure", url: "{{ infrastructure_url }}" }
+    - { name: "discord-bot", url: "{{ discord_bot_url }}" }
+    - { name: "events-api", url: "{{ events_api_url }}" }
     - { name: "launcher", url: "{{ launcher_url }}" }
     - { name: "website", url: "{{ website_url }}" }
     - { name: "client", url: "{{ client_url }}" }
     - { name: "server", url: "{{ server_url }}" }
     - { name: "wiki", url: "{{ wiki_url }}" }
+
   loop_control:
     label: "{{ item.name }}"
 
@@ -215,6 +218,8 @@
     - server
     - wiki
     - infrastructure
+    - discord-bot
+    - events-api
 
 - name: Set Git to avoid line ending conversions
   command: git config core.autocrlf input
@@ -227,18 +232,21 @@
     - server
     - wiki
     - infrastructure
+    - discord-bot
+    - events-api
 
-- name: Reset any changes in the repositories
-  command: git reset --hard HEAD
-  args:
-    chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
-  with_items:
-    - website
-    - launcher
-    - client
-    - server
-    - wiki
-    - infrastructure
+# - name: Reset any changes in the repositories
+#   command: git reset --hard HEAD
+#   args:
+#     chdir: "/home/{{ ansible_user }}/repositories/{{ item }}"
+#   with_items:
+#     - website
+#     - launcher
+#     - client
+#     - server
+#     - wiki
+#     - infrastructure
+#     - events-api
 
 - name: Pull Git LFS objects
   command: git lfs pull

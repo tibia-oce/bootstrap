@@ -4,5 +4,7 @@ client_url: git@github.com:tibia-oce/mythbound-client.git
 server_url: git@github.com:tibia-oce/mythbound-server.git
 website_url: git@github.com:tibia-oce/mythbound-website.git
 launcher_url: git@github.com:tibia-oce/mythbound-launcher.git
+discord_bot_url: git@github.com:tibia-oce/mythbound-discord-bot.git
 infrastructure_url: git@github.com:tibia-oce/mythbound-infrastructure.git
-map_editor_url: "git@github.com:tibia-oce/map-editor.git"
+map_editor_url: git@github.com:tibia-oce/map-editor.git
+events_api_url: git@github.com:tibia-oce/mythbound-events-api.git

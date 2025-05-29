@@ -1,0 +1,68 @@
+- name: Install prerequisites for uv standalone installer
+  apt:
+    name:
+      - curl
+      - wget
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Check if uv is already installed
+  stat:
+    path: "/home/{{ ansible_user }}/.local/bin/uv"
+  register: uv_installed
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Create uv install directory
+  file:
+    path: "/home/{{ ansible_user }}/.local/bin"
+    state: directory
+    mode: "0755"
+  when: not uv_installed.stat.exists
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Download and install uv via standalone installer
+  shell: |
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+  args:
+    creates: "/home/{{ ansible_user }}/.local/bin/uv"
+  environment:
+    HOME: "/home/{{ ansible_user }}"
+  when: not uv_installed.stat.exists
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Check if .zshrc contains uv completion
+  command: grep -E 'uv generate-shell-completion' "/home/{{ ansible_user }}/.zshrc"
+  register: zshrc_uv_check
+  changed_when: false
+  failed_when: false
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Update .zshrc with uv shell completion if missing
+  blockinfile:
+    path: "/home/{{ ansible_user }}/.zshrc"
+    marker: "# {mark} UV COMPLETION"
+    block: |
+      # uv tab-completion
+      if command -v uv >/dev/null 2>&1; then
+        eval "$(uv generate-shell-completion zsh)"
+      fi
+  when: zshrc_uv_check.rc != 0
+  become: true
+  become_user: "{{ ansible_user }}"
+
+- name: Verify uv installation
+  shell: |
+    export PATH="$HOME/.local/bin:$PATH"
+    uv --version
+  args:
+    executable: /bin/bash
+  register: uv_verify
+  changed_when: false
+  failed_when: uv_verify.rc != 0
+  become: true
+  become_user: "{{ ansible_user }}"

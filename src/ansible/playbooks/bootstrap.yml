@@ -50,6 +50,9 @@
     - name: Include python tasks
       ansible.builtin.import_tasks: ./tasks/python.yml
 
+    - name: Include uv tasks
+      ansible.builtin.import_tasks: ./tasks/uv.yml
+
     - name: Include node tasks
       ansible.builtin.import_tasks: ./tasks/node.yml
 
